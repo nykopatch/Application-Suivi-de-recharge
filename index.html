@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="ElecCharge">
-    <title>ElecCharge v7</title>
+    <title>ElecCharge v7.1</title>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
         :root {
@@ -739,7 +739,9 @@
 
             if (!filtered.length) { listContainer.innerHTML = '<div class="empty-state">Aucune session.</div>'; return; }
 
-            filtered.sort((a,b) => new Date(b.date) - new Date(a.date));
+            // CORRECTION SAFARI : Tri textuel direct des chaînes (ex: "2026-05-21") pour éviter le bug New Date()
+            filtered.sort((a, b) => b.date.localeCompare(a.date));
+            
             filtered.forEach(c => {
                 const item = document.createElement('div'); item.className = 'charge-item';
                 let label = '', bClass = '';
@@ -747,10 +749,14 @@
                 if(c.type==='hp'){ label='Maison HP'; bClass='badge-hp'; }
                 if(c.type==='borne'){ label='Borne'; bClass='badge-borne'; }
 
+                // Nettoyage affichage date locale pour l'iPhone
+                const dateParts = c.date.split('-');
+                const formattedDate = dateParts.length === 3 ? `${dateParts[2]}/${dateParts[1]}` : c.date;
+
                 item.innerHTML = `
                     <div class="charge-info">
                         <p><span class="type-badge ${bClass}">${label}</span>${c.kwh.toFixed(1)} kWh</p>
-                        <span>Le ${new Date(c.date).toLocaleDateString('fr-FR', {day:'numeric', month:'short'})}</span>
+                        <span>Le ${formattedDate}</span>
                     </div>
                     <div class="charge-cost">
                         <p>${c.cost.toLocaleString('fr-FR', {style:'currency', currency:'EUR'})}</p>
