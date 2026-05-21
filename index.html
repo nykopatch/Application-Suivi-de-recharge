@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="ElecCharge">
-    <title>ElecCharge v4</title>
+    <title>ElecCharge v7</title>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
         :root {
@@ -21,40 +21,16 @@
             --border: #e7e5e4;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0; padding: 0;
-            -webkit-tap-highlight-color: transparent;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            padding: env(safe-area-inset-top) 16px calc(env(safe-area-inset-bottom) + 80px) 16px;
-            max-width: 500px;
-            margin: 0 auto;
-        }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding: env(safe-area-inset-top) 16px calc(env(safe-area-inset-bottom) + 80px) 16px; max-width: 500px; margin: 0 auto; }
         .tab-content { display: none; animation: fadeIn 0.2s ease-out; }
         .tab-content.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-
         header { padding: 20px 0 10px 0; margin-bottom: 10px; }
         header h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
 
-        .bottom-nav {
-            position: fixed; bottom: 0; left: 0; right: 0;
-            background: rgba(255, 255, 255, 0.94); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            border-top: 1px solid var(--border); display: flex; justify-content: space-around;
-            padding-top: 8px; padding-bottom: calc(8px + env(safe-area-inset-bottom));
-            z-index: 999; max-width: 500px; margin: 0 auto;
-        }
-
-        .nav-item {
-            display: flex; flex-direction: column; align-items: center; background: none; border: none;
-            color: var(--text-muted); font-size: 11px; font-weight: 500; cursor: pointer; width: 25%;
-        }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.94); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding-top: 8px; padding-bottom: calc(8px + env(safe-area-inset-bottom)); z-index: 999; max-width: 500px; margin: 0 auto; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; background: none; border: none; color: var(--text-muted); font-size: 11px; font-weight: 500; cursor: pointer; width: 25%; }
         .nav-item.active { color: var(--primary); font-weight: 700; }
         .nav-icon { font-size: 22px; margin-bottom: 2px; }
 
@@ -62,7 +38,6 @@
         .stats-main { background: linear-gradient(135deg, #0284c7, #0369a1); color: white; }
         .stats-main h3 { color: #bae6fd; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
         .stats-main .main-val { font-size: 32px; font-weight: 800; }
-
         .card-savings { background: linear-gradient(135deg, #16a34a, #15803d); color: white; display: flex; justify-content: space-between; align-items: center; }
         .card-savings h3 { color: #bbf7d0; font-size: 12px; text-transform: uppercase; }
         .card-savings .savings-val { font-size: 22px; font-weight: 800; }
@@ -81,9 +56,7 @@
 
         .form-group { margin-bottom: 14px; }
         .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-muted); }
-        .form-group input, .form-group select {
-            width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 10px; font-size: 16px; outline: none; background: #f8f7f6;
-        }
+        .form-group input, .form-group select { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 10px; font-size: 16px; outline: none; background: #f8f7f6; }
         .form-group input:focus, .form-group select:focus { border-color: var(--primary); background: white; }
         
         .checkbox-group { display: flex; align-items: center; background: #f8f7f6; padding: 12px; border-radius: 10px; border: 1px solid var(--border); cursor: pointer; margin-bottom: 14px; }
@@ -93,6 +66,10 @@
         .btn-submit { background: var(--primary); color: white; border: none; width: 100%; padding: 14px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; }
         .filter-container { margin-bottom: 14px; display: flex; gap: 8px; }
         .filter-container select { flex-grow: 1; background: var(--card-bg); border: 1px solid var(--border); padding: 10px 12px; border-radius: 10px; font-size: 16px; font-weight: 600; }
+
+        .monthly-summary-card { background: #f8f7f6; padding: 12px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 8px; cursor: pointer; }
+        .monthly-summary-header { display: flex; justify-content: space-between; font-weight: 700; font-size: 15px; }
+        .monthly-summary-details { font-size: 12px; color: var(--text-muted); margin-top: 6px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
 
         .charge-list { display: flex; flex-direction: column; gap: 10px; }
         .charge-item { background: var(--card-bg); padding: 14px; border-radius: 14px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
@@ -113,39 +90,42 @@
         .scan-zone input { position: absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer; }
         #ocrStatus { font-weight: 600; color: var(--primary); text-align: center; margin: 10px 0; display: none; }
         .scanned-card { border: 2px solid #10b981; background: #f0fdf4; padding: 12px; border-radius: 12px; margin-bottom: 10px; }
-
         .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 14px; }
         
-        /* Modal d'édition */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: flex-end; z-index: 1000; }
         .modal-content { background: var(--card-bg); width: 100%; max-width: 500px; margin: 0 auto; border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 24px; padding-bottom: calc(24px + env(safe-area-inset-bottom)); max-height: 90vh; overflow-y: auto; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .btn-close { background: #f5f5f4; border: none; width: 30px; height: 30px; border-radius: 50%; font-weight: 700; cursor: pointer; }
 
-        .annual-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-        .annual-box { background: #f8f7f6; padding: 12px; border-radius: 10px; border: 1px solid var(--border); }
-        .annual-box p { font-size: 16px; font-weight: 700; color: var(--text-main); }
-        .annual-box span { font-size: 11px; color: var(--text-muted); }
+        .flex-btn-group { display: flex; gap: 8px; margin-top: 8px; }
+        .btn-outline { background: none; border: 1px solid var(--primary); color: var(--primary); width: 100%; padding: 12px; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; text-align: center; }
     </style>
 </head>
 <body>
 
-    <!-- ================= ONGLET 1 : ACCUEIL & COMPARATIF ESSENCE ================= -->
     <div id="tab-home" class="tab-content active">
         <header>
-            <h1>⚡ Tableau de Bord</h1>
+            <h1>⚡ ElecCharge</h1>
         </header>
         
         <div class="card stats-main">
-            <h3>Coût de ce Mois</h3>
+            <h3 id="homeMonthTitle">Coût ce Mois</h3>
             <div class="main-val" id="totalCost">0,00 €</div>
-            <div style="margin-top: 6px; font-size: 13px; opacity: 0.9;" id="currentMonthLabel">Mois : --</div>
+            <div style="margin-top: 6px; font-size: 13px; opacity: 0.9;" id="kmRealLabel">Calculé sur conso théorique</div>
         </div>
 
-        <!-- Carte Économies VS Essence -->
+        <div class="card" style="border: 1px solid var(--primary-light); background: #f0f9ff;">
+            <h3 style="font-size: 13px; font-weight: 700; margin-bottom: 6px; color: var(--primary);">🎯 Kilométrage réel du mois</h3>
+            <div style="display:flex; gap:10px; align-items:center;">
+                <input type="number" id="kmInput" placeholder="ex: 1250" style="flex-grow:1; padding:8px 12px; border-radius:8px; border:1px solid var(--border); font-size:15px;">
+                <button onclick="saveKmReal()" style="background:var(--primary); color:white; border:none; padding:8px 14px; border-radius:8px; font-weight:600; font-size:14px;">Enregistrer</button>
+            </div>
+            <div id="kmStatsFeedback" style="font-size:11px; color:var(--text-muted); margin-top:6px; display:none;"></div>
+        </div>
+
         <div class="card card-savings">
             <div>
-                <h3>Économies vs Essence (4,7L/100)</h3>
+                <h3>Économies Réelles vs Essence</h3>
                 <div class="savings-val" id="savingsValue">0,00 € gagnés</div>
             </div>
             <div style="font-size: 28px;">🍃</div>
@@ -157,14 +137,13 @@
                 <div class="val" id="totalKwh">0 kWh</div>
             </div>
             <div class="card sub-card">
-                <h3>Total Cumulé Annuel</h3>
-                <div class="val" id="annualCostTotal">0,00 €</div>
+                <h3>Vrai Conso Moyenne</h3>
+                <div class="val" id="realAvgCons">--</div>
             </div>
         </div>
 
-        <!-- Répartition -->
         <div class="card">
-            <h3 style="font-size: 12px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px;">Détails des dépenses mensuelles</h3>
+            <h3 style="font-size: 12px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px;">Répartition des dépenses du mois</h3>
             <div class="bar-group">
                 <div class="bar-label"><span>Heures Creuses (Maison)</span><span id="labelHc">0 €</span></div>
                 <div class="bar-bg"><div id="barHc" class="bar-fill bar-hc" style="width: 0%"></div></div>
@@ -178,51 +157,44 @@
                 <div class="bar-bg"><div id="barBorne" class="bar-fill bar-borne" style="width: 0%"></div></div>
             </div>
         </div>
-
-        <!-- Vue Annuelle Rapide -->
-        <div class="card">
-            <h3 style="font-size: 13px; font-weight: 700; margin-bottom: 8px;">📊 Bilan de l'année en cours</h3>
-            <div class="annual-summary">
-                <div class="annual-box">
-                    <span>Dépensé au total</span>
-                    <p id="annCost">0,00 €</p>
-                </div>
-                <div class="annual-box">
-                    <span>Économisé vs Hybride</span>
-                    <p id="annSavings" style="color:var(--success);">0,00 €</p>
-                </div>
-            </div>
-        </div>
     </div>
 
-
-    <!-- ================= ONGLET 2 : AJOUTER / SCANNER ================= -->
     <div id="tab-add" class="tab-content">
         <header>
             <h1>➕ Nouvelle Recharge</h1>
         </header>
 
         <div class="card">
-            <h3 style="font-size:14px; margin-bottom:8px;">Scanner une Capture d'Écran</h3>
+            <h3 style="font-size:14px; margin-bottom:4px;">📸 Scanner une Capture d'Écran</h3>
+            <p style="font-size:11px; color:var(--text-muted); margin-bottom:10px;">Prend en charge <b>My Renault</b> (avec +9.3% de pertes auto).</p>
             <div class="scan-zone">
-                📸 Appuie pour importer ta capture d'écran
+                Choisir une capture d'écran
                 <input type="file" id="screenshotInput" accept="image/*" onchange="processScreenshot()">
             </div>
-            <div id="ocrStatus">Lecture automatique en cours...</div>
-            
+            <div id="ocrStatus">Lancement de l'analyse...</div>
             <div id="scannedResults" style="display:none;">
                 <div id="scannedCardsList"></div>
-                <button class="btn-submit" onclick="saveAllScanned()" style="background:#10b981;">Valider et enregistrer les sessions</button>
+                <button class="btn-submit" onclick="saveAllScanned()" style="background:#10b981;">Enregistrer ces sessions</button>
             </div>
         </div>
 
         <div class="card">
-            <h3 style="font-size:14px; margin-bottom:12px;">Ajout Manuel rapide</h3>
+            <h3 style="font-size:14px; margin-bottom:4px;">📄 Importer le CSV Borne Alfen</h3>
+            <p style="font-size:11px; color:var(--text-muted); margin-bottom:10px;">Charge directement le fichier exporté <i>Eve Connect</i>.</p>
+            <div class="scan-zone" style="background:#f0fdf4; border-color:#10b981; color:#16a34a;">
+                Sélectionner le fichier CSV Alfen
+                <input type="file" id="csvInput" accept=".csv" onchange="processCsvFile()">
+            </div>
+            <div id="csvResults" style="display:none; margin-top:15px;">
+                <div id="csvCardsList" style="display:flex; flex-direction:column; gap:10px; max-height:200px; overflow-y:auto; margin-bottom:12px; border:1px solid var(--border); padding:8px; border-radius:8px;"></div>
+                <button class="btn-submit" onclick="saveAllCsvCharges()" style="background:#16a34a;">Valider tout l'import CSV</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 style="font-size:14px; margin-bottom:12px;">✍️ Ajout Manuel Rapide</h3>
             <form id="chargeForm" onsubmit="saveManualCharge(event)">
-                <div class="form-group">
-                    <label>Date</label>
-                    <input type="date" id="chargeDate" required>
-                </div>
+                <div class="form-group"><label>Date</label><input type="date" id="chargeDate" required></div>
                 <div class="form-group">
                     <label>Lieu</label>
                     <select id="chargePlace" onchange="handlePlaceChange()">
@@ -232,152 +204,119 @@
                 </div>
                 <div class="checkbox-group" id="hcCheckboxGroup">
                     <input type="checkbox" id="isHc" onchange="recalculateManualCost()">
-                    <label for="isHc"><b>Tarif Heures Creuses (HC)</b><br><span style="font-size:11px; color:var(--text-muted);">Décoché = Heures Pleines</span></label>
+                    <label for="isHc"><b>Tarif Heures Creuses (HC)</b></label>
                 </div>
-                <div class="form-group">
-                    <label>Énergie injectée (kWh)</label>
-                    <input type="number" id="kwh" step="0.01" placeholder="ex: 42.1" required oninput="recalculateManualCost()">
-                </div>
-                <div class="form-group">
-                    <label>Coût total estimé (€)</label>
-                    <input type="number" id="cost" step="0.01" required>
-                </div>
-                <button type="submit" class="btn-submit">Enregistrer</button>
+                <div class="form-group"><label>Énergie (kWh)</label><input type="number" id="kwh" step="0.01" required oninput="recalculateManualCost()"></div>
+                <div class="form-group"><label>Coût estimé (€)</label><input type="number" id="cost" step="0.01" required></div>
+                <button type="submit" class="btn-submit">Enregistrer la recharge</button>
             </form>
         </div>
     </div>
 
-
-    <!-- ================= ONGLET 3 : HISTORIQUE ARCHIVÉ PAR MOIS ================= -->
     <div id="tab-history" class="tab-content">
         <header>
-            <h1>📂 Archives & Historique</h1>
+            <h1>📂 Historique Global</h1>
         </header>
 
-        <div class="filter-container">
-            <select id="filterMonth" onchange="updateDashboard()">
-                <!-- Rempli par le script -->
-            </select>
+        <div id="historyGlobalSummary" style="margin-bottom: 20px;">
+            <h3 style="font-size:14px; color:var(--text-muted); margin-bottom:10px;">Synthèse par mois :</h3>
+            <div id="monthsSummaryList"></div>
         </div>
 
-        <div class="charge-list" id="chargeList">
-            <!-- Rempli dynamiquement -->
+        <div style="border-top: 1px solid var(--border); padding-top:14px;">
+            <h3 style="font-size:14px; color:var(--text-muted); margin-bottom:10px;">Détail des sessions de charge :</h3>
+            <div class="filter-container">
+                <select id="filterMonth" onchange="renderHistoryDetailedList()"></select>
+            </div>
+            <div class="charge-list" id="chargeList"></div>
         </div>
     </div>
 
-
-    <!-- ================= ONGLET 4 : RÉGLAGES ET CONFIG VEHICULE ================= -->
     <div id="tab-settings" class="tab-content">
         <header>
             <h1>⚙️ Configuration</h1>
         </header>
-
         <div class="card">
-            <h3 style="font-size:14px; margin-bottom:12px;">Tarifs Électricité</h3>
+            <h3 style="font-size:14px; margin-bottom:12px;">Tarifs Électricité Réglés</h3>
             <form onsubmit="saveSettings(event)">
+                <div class="form-group"><label>Maison - Heures Creuses (€/kWh)</label><input type="number" id="rateHc" step="0.0001" required></div>
+                <div class="form-group"><label>Maison - Heures Pleines (€/kWh)</label><input type="number" id="rateHp" step="0.0001" required></div>
+                <div class="form-group"><label>Borne Publique par défaut (€/kWh)</label><input type="number" id="rateBorne" step="0.01" required></div>
+
+                <h3 style="font-size:14px; margin: 20px 0 12px 0; border-top: 1px solid var(--border); padding-top:14px;">Coefficients auto</h3>
                 <div class="form-group">
-                    <label>Maison - Heures Creuses (€/kWh)</label>
-                    <input type="number" id="rateHc" step="0.0001" required>
+                    <label>Pertes de charge My Renault (%)</label>
+                    <input type="number" id="renaultLoss" step="0.1" required>
                 </div>
                 <div class="form-group">
-                    <label>Maison - Heures Pleines (€/kWh)</label>
-                    <input type="number" id="rateHp" step="0.0001" required>
-                </div>
-                <div class="form-group">
-                    <label>Borne Publique par défaut (€/kWh)</label>
-                    <input type="number" id="rateBorne" step="0.01" required>
+                    <label>État de santé Batterie (SoH %)</label>
+                    <input type="number" id="sohValue" step="0.1" placeholder="ex: 94">
                 </div>
 
                 <h3 style="font-size:14px; margin: 20px 0 12px 0; border-top: 1px solid var(--border); padding-top:14px;">Comparatif Essence</h3>
-                <div class="form-group">
-                    <label>Ancienne Consommation Essence (L/100km)</label>
-                    <input type="number" id="fuelCons" step="0.1" value="4.7" required>
-                </div>
-                <div class="form-group">
-                    <label>Prix estimé du carburant (€/L)</label>
-                    <input type="number" id="fuelPrice" step="0.01" value="1.85" required>
-                </div>
-                <div class="form-group">
-                    <label>Consommation moyenne de ton VE (kWh/100km)</label>
-                    <input type="number" id="evCons" step="0.1" value="16.0" required>
-                </div>
-
+                <div class="form-group"><label>Ancienne Conso Essence (L/100km)</label><input type="number" id="fuelCons" step="0.1" required></div>
+                <div class="form-group"><label>Prix estimé Carburant (€/L)</label><input type="number" id="fuelPrice" step="0.01" required></div>
+                <div class="form-group"><label>Consommation VE théorique (kWh/100km)</label><input type="number" id="evCons" step="0.1" required></div>
+                
                 <button type="submit" class="btn-submit">Sauvegarder les paramètres</button>
             </form>
         </div>
+
+        <div class="card">
+            <h3 style="font-size:14px; margin-bottom:6px;">💾 Sécurité et Sauvegarde</h3>
+            <p style="font-size:11px; color:var(--text-muted); margin-bottom:12px;">Exporte ou restaure ton historique pour ne jamais perdre tes données.</p>
+            <div class="flex-btn-group">
+                <button class="btn-outline" onclick="exportDataData()">📥 Exporter (.json)</button>
+                <button class="btn-outline" style="position:relative; overflow:hidden;">
+                    📤 Importer
+                    <input type="file" id="importFileInput" accept=".json" onchange="importDataData(event)" style="position:absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer;">
+                </button>
+            </div>
+        </div>
     </div>
 
-
-    <!-- ================= MODAL D'ÉDITION DE DONNÉE ================= -->
     <div class="modal" id="editModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 style="font-size:18px; font-weight:700;">Modifier la Recharge</h2>
+                <h2 style="font-size:18px; font-weight:700;">Modifier la Session</h2>
                 <button class="btn-close" onclick="closeModal('editModal')">✕</button>
             </div>
             <form id="editForm" onsubmit="submitEditCharge(event)">
                 <input type="hidden" id="editId">
-                <div class="form-group">
-                    <label>Date</label>
-                    <input type="date" id="editDate" required>
-                </div>
-                <div class="form-group">
-                    <label>Type / Tarif</label>
-                    <select id="editType">
-                        <option value="hc">Maison - Heures Creuses (HC)</option>
-                        <option value="hp">Maison - Heures Pleines (HP)</option>
-                        <option value="borne">Borne Extérieure</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Énergie (kWh)</label>
-                    <input type="number" id="editKwh" step="0.01" required>
-                </div>
-                <div class="form-group">
-                    <label>Coût (€)</label>
-                    <input type="number" id="editCost" step="0.01" required>
-                </div>
-                <button type="submit" class="btn-submit" style="background:var(--success);">Appliquer les modifications</button>
+                <div class="form-group"> <label>Date</label> <input type="date" id="editDate" required> </div>
+                <div class="form-group"> <label>Type / Tarif</label> <select id="editType"><option value="hc">Maison HC</option><option value="hp">Maison HP</option><option value="borne">Borne</option></select> </div>
+                <div class="form-group"> <label>Énergie (kWh)</label> <input type="number" id="editKwh" step="0.01" required> </div>
+                <div class="form-group"> <label>Coût (€)</label> <input type="number" id="editCost" step="0.01" required> </div>
+                <button type="submit" class="btn-submit" style="background:var(--success);">Appliquer</button>
             </form>
         </div>
     </div>
 
-
-    <!-- ================= BARRE DE NAVIGATION COMMUNE ================= -->
     <nav class="bottom-nav">
-        <button class="nav-item active" onclick="switchTab('home', this)">
-            <span class="nav-icon">📊</span>
-            <span>Accueil</span>
-        </button>
-        <button class="nav-item" onclick="switchTab('add', this)">
-            <span class="nav-icon">➕</span>
-            <span>Ajouter</span>
-        </button>
-        <button class="nav-item" onclick="switchTab('history', this)">
-            <span class="nav-icon">📂</span>
-            <span>Historique</span>
-        </button>
-        <button class="nav-item" onclick="switchTab('settings', this)">
-            <span class="nav-icon">⚙️</span>
-            <span>Réglages</span>
-        </button>
+        <button class="nav-item active" onclick="switchTab('home', this)"><span class="nav-icon">📊</span><span>Accueil</span></button>
+        <button class="nav-item" onclick="switchTab('add', this)"><span class="nav-icon">➕</span><span>Ajouter</span></button>
+        <button class="nav-item" onclick="switchTab('history', this)"><span class="nav-icon">📂</span><span>Historique</span></button>
+        <button class="nav-item" onclick="switchTab('settings', this)"><span class="nav-icon">⚙️</span><span>Réglages</span></button>
     </nav>
 
     <script>
-        // Initialisation base de données locale
         if (!localStorage.getItem('ev_charges')) localStorage.setItem('ev_charges', JSON.stringify([]));
-        if (!localStorage.getItem('ev_rates_v4')) {
-            localStorage.setItem('ev_rates_v4', JSON.stringify({ 
-                hc: 0.2068, hp: 0.2512, borne: 0.45,
-                fuelCons: 4.7, fuelPrice: 1.85, evCons: 16.0
+        if (!localStorage.getItem('ev_monthly_km')) localStorage.setItem('ev_monthly_km', JSON.stringify({}));
+        if (!localStorage.getItem('ev_rates_v7')) {
+            localStorage.setItem('ev_rates_v7', JSON.stringify({ 
+                hc: 0.2068, hp: 0.2512, borne: 0.45, renaultLoss: 9.3, soh: 94.0, fuelCons: 4.7, fuelPrice: 1.85, evCons: 16.0 
             }));
         }
 
         let tempScannedCharges = [];
+        let tempCsvCharges = [];
+        let globalSelectedMonth = new Date().toISOString().substring(0, 7);
 
         function getCharges() { return JSON.parse(localStorage.getItem('ev_charges')); }
         function setCharges(charges) { localStorage.setItem('ev_charges', JSON.stringify(charges)); }
-        function getConfigs() { return JSON.parse(localStorage.getItem('ev_rates_v4')); }
+        function getKmRecords() { return JSON.parse(localStorage.getItem('ev_monthly_km')); }
+        function setKmRecords(records) { localStorage.setItem('ev_monthly_km', JSON.stringify(records)); }
+        function getConfigs() { return JSON.parse(localStorage.getItem('ev_rates_v7')); }
 
         function switchTab(tabId, buttonEl) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -407,72 +346,40 @@
         function saveManualCharge(e) {
             e.preventDefault();
             const date = document.getElementById('chargeDate').value;
-            const place = document.getElementById('chargePlace').value;
-            const isHc = document.getElementById('isHc').checked;
             const kwh = parseFloat(document.getElementById('kwh').value);
             const cost = parseFloat(document.getElementById('cost').value);
+            const place = document.getElementById('chargePlace').value;
+            const isHc = document.getElementById('isHc').checked;
             let type = (place === 'maison') ? (isHc ? 'hc' : 'hp') : 'borne';
 
             const charges = getCharges();
-            charges.push({ id: Date.now().toString(), date, type, kwh, cost });
+            charges.push({ id: Date.now().toString()+Math.random().toString(36).substring(2,4), date, type, kwh, cost });
             setCharges(charges);
 
             document.getElementById('chargeForm').reset();
             document.getElementById('chargeDate').value = new Date().toISOString().split('T')[0];
             handlePlaceChange();
+            globalSelectedMonth = date.substring(0, 7);
             alert("Recharge ajoutée !");
             switchTab('home', document.querySelectorAll('.nav-item')[0]);
         }
 
-        // --- INTERACTION HISTORIQUE : MODIFIER / SUPPRIMER ---
-        function openEditModal(id) {
-            const charges = getCharges();
-            const target = charges.find(c => c.id === id);
-            if(!target) return;
-
-            document.getElementById('editId').value = target.id;
-            document.getElementById('editDate').value = target.date;
-            document.getElementById('editType').value = target.type;
-            document.getElementById('editKwh').value = target.kwh;
-            document.getElementById('editCost').value = target.cost;
-            document.getElementById('editModal').style.display = 'flex';
-        }
-
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-
-        function submitEditCharge(e) {
-            e.preventDefault();
-            const id = document.getElementById('editId').value;
-            const charges = getCharges();
-            const index = charges.findIndex(c => c.id === id);
+        function saveKmReal() {
+            const kmVal = parseInt(document.getElementById('kmInput').value);
+            if (!kmVal || kmVal <= 0) { alert("Entre un kilométrage valide."); return; }
             
-            if(index !== -1) {
-                charges[index].date = document.getElementById('editDate').value;
-                charges[index].type = document.getElementById('editType').value;
-                charges[index].kwh = parseFloat(document.getElementById('editKwh').value);
-                charges[index].cost = parseFloat(document.getElementById('editCost').value);
-                setCharges(charges);
-            }
-            closeModal('editModal');
+            const records = getKmRecords();
+            records[globalSelectedMonth] = kmVal;
+            setKmRecords(records);
+            alert(`Kilométrage enregistré !`);
             updateDashboard();
         }
 
-        function deleteCharge(id) {
-            if(confirm("Supprimer définitivement cette session ?")) {
-                let charges = getCharges();
-                charges = charges.filter(c => c.id !== id);
-                setCharges(charges);
-                updateDashboard();
-            }
-        }
-
-        // --- LOGIQUE OCR ET SCAN ---
         async function processScreenshot() {
             const fileInput = document.getElementById('screenshotInput');
             if (!fileInput.files.length) return;
             const statusDiv = document.getElementById('ocrStatus');
-            statusDiv.style.display = 'block';
-            statusDiv.textContent = "Lecture de l'image...";
+            statusDiv.style.display = 'block'; statusDiv.textContent = "Analyse OCR de l'image...";
             document.getElementById('scannedResults').style.display = 'none';
 
             try {
@@ -480,61 +387,79 @@
                 const ret = await worker.recognize(fileInput.files[0]);
                 await worker.terminate();
                 parseOcrText(ret.data.text);
-            } catch (e) {
-                statusDiv.textContent = "Erreur pendant le scan.";
-            }
+            } catch (e) { statusDiv.textContent = "Erreur pendant le scan."; }
         }
 
         function parseOcrText(text) {
             const statusDiv = document.getElementById('ocrStatus');
             const resultsDiv = document.getElementById('scannedResults');
             const cardsContainer = document.getElementById('scannedCardsList');
-            cardsContainer.innerHTML = '';
-            tempScannedCharges = [];
+            cardsContainer.innerHTML = ''; tempScannedCharges = [];
 
             const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-            let currentSessionDate = null;
-            let currentSessionTime = "";
+            let currentSessionDate = null, currentSessionTime = "", isRenaultApp = false;
 
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i];
-                const dateRegex = /(\d{2})[.\/](\d{2})[.\/](\d{4})/;
-                const matchDate = line.match(dateRegex);
-                if (matchDate) {
-                    currentSessionDate = `${matchDate[3]}-${matchDate[2]}-${matchDate[1]}`;
+                const dateRegex1 = /(\d{2})[.\/](\d{2})[.\/](\d{4})/;
+                const matchDate1 = line.match(dateRegex1);
+                if (matchDate1) {
+                    currentSessionDate = `${matchDate1[3]}-${matchDate1[2]}-${matchDate1[1]}`;
                     const timeRegex = /(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})/;
                     const matchTime = line.match(timeRegex);
                     currentSessionTime = matchTime ? matchTime[1] : "";
-                    continue;
+                    isRenaultApp = false; continue;
                 }
 
+                const rRenaultDate = /(lun|mar|mer|jeu|ven|sam|dim)\.?\s*(\d{1,2})\s*à\s*(\d{2}):(\d{2})/i;
+                const matchRenault = line.match(rRenaultDate);
+                if (matchRenault) {
+                    const dayNum = String(matchRenault[2]).padStart(2, '0');
+                    const currentYm = new Date().toISOString().substring(0, 7);
+                    currentSessionDate = `${currentYm}-${dayNum}`;
+                    currentSessionTime = `${matchRenault[3]}:${matchRenault[4]}`;
+                    isRenaultApp = true; continue;
+                }
+
+                let kwhValue = null;
                 if (line.toLowerCase().includes('rechargé') || line.toLowerCase().includes('kwh')) {
                     const kwhRegex = /(\d+([.,]\d+)?)\s*kwh/i;
                     const matchKwh = line.match(kwhRegex);
-                    if (matchKwh && currentSessionDate) {
-                        let kwhValue = parseFloat(matchKwh[1].replace(',', '.'));
-                        if (kwhValue >= 0.05) {
-                            let detectedType = 'hp';
-                            if (currentSessionTime) {
-                                const hour = parseInt(currentSessionTime.split(':')[0]);
-                                if (hour >= 22 || hour < 6) detectedType = 'hc';
-                            }
-                            const configs = getConfigs();
-                            tempScannedCharges.push({
-                                id: `scan-${Date.now()}-${Math.random()}`,
-                                date: currentSessionDate, time: currentSessionTime, type: detectedType, kwh: kwhValue, cost: kwhValue * configs[detectedType]
-                            });
+                    if (matchKwh) kwhValue = parseFloat(matchKwh[1].replace(',', '.'));
+                }
+                if (line.toLowerCase().includes('stocké')) {
+                    const stockRegex = /(\d+([.,]\d+)?)\s*kwh/i;
+                    const matchStock = line.match(stockRegex);
+                    if (matchStock) { kwhValue = parseFloat(matchStock[1].replace(',', '.')); isRenaultApp = true; }
+                }
+
+                if (kwhValue !== null && currentSessionDate) {
+                    if (kwhValue >= 0.05) {
+                        const configs = getConfigs();
+                        let notePerte = "";
+                        if (isRenaultApp) {
+                            const lossPct = configs.renaultLoss || 9.3;
+                            const internalKwh = kwhValue;
+                            kwhValue = kwhValue * (1 + (lossPct / 100));
+                            notePerte = ` (+${lossPct}% pertes : ${internalKwh.toFixed(2)} -> ${kwhValue.toFixed(2)} kWh)`;
                         }
-                        currentSessionDate = null; currentSessionTime = "";
+
+                        let detectedType = 'hp';
+                        if (currentSessionTime) {
+                            const hour = parseInt(currentSessionTime.split(':')[0]);
+                            if (hour >= 22 || hour < 6) detectedType = 'hc';
+                        }
+                        
+                        tempScannedCharges.push({
+                            id: `scan-${Date.now()}-${Math.random()}`, date: currentSessionDate, time: currentSessionTime, type: detectedType, kwh: kwhValue, cost: kwhValue * configs[detectedType], note: notePerte
+                        });
                     }
+                    currentSessionDate = null; currentSessionTime = "";
                 }
             }
 
             statusDiv.style.display = 'none';
-            if (!tempScannedCharges.length) {
-                alert("Aucune donnée lisible trouvée.");
-                return;
-            }
+            if (!tempScannedCharges.length) { alert("Aucune session lisible."); return; }
             resultsDiv.style.display = 'block';
             refreshScanCardsList();
         }
@@ -546,9 +471,10 @@
                 const card = document.createElement('div');
                 card.className = 'scanned-card';
                 card.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:13px;">
-                        <b>📅 ${c.date} à ${c.time||'--'}</b> <b>${c.kwh} kWh</b>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-size:13px;">
+                        <b>📅 ${c.date} ${c.time?`à ${c.time}`:''}</b> <b>${c.kwh.toFixed(2)} kWh</b>
                     </div>
+                    <div style="font-size:11px; color:var(--success); margin-bottom:6px;">${c.note || ''}</div>
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
                         <select onchange="updateTempType(${idx}, this.value)" style="padding:4px; font-size:12px;">
                             <option value="hc" ${c.type==='hc'?'selected':''}>Maison HC</option>
@@ -576,138 +502,246 @@
             });
             setCharges(charges);
             document.getElementById('scannedResults').style.display = 'none';
-            document.getElementById('screenshotInput').value = '';
-            alert("Sessions ajoutées !");
+            if (tempScannedCharges.length > 0) globalSelectedMonth = tempScannedCharges[0].date.substring(0, 7);
+            alert("Sessions enregistrées !");
             switchTab('home', document.querySelectorAll('.nav-item')[0]);
         }
 
-        // --- RÉGLAGES TARIFS & ESSENCE ---
+        function processCsvFile() {
+            const fileInput = document.getElementById('csvInput');
+            if (!fileInput.files.length) return;
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                const text = e.target.result;
+                const lines = text.split('\n');
+                const configs = getConfigs();
+                tempCsvCharges = [];
+                
+                lines.forEach(line => {
+                    const parts = line.split(',');
+                    if (parts.length >= 5) {
+                        const rawDate = parts[1].trim(); const rawTime = parts[2].trim(); const rawKwh = parts[4].trim(); 
+                        if (rawDate.includes('/') && rawKwh.toLowerCase().includes('kwh')) {
+                            const dateParts = rawDate.split('/');
+                            if (dateParts.length === 3) {
+                                const formattedDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`; 
+                                const kwhVal = parseFloat(rawKwh.replace(/[^\d.]/g, ''));
+                                if (kwhVal > 0.05) {
+                                    let detectedType = 'hp';
+                                    if (rawTime) {
+                                        const hour = parseInt(rawTime.split(':')[0]);
+                                        if (hour >= 22 || hour < 6) detectedType = 'hc';
+                                    }
+                                    tempCsvCharges.push({
+                                        id: 'csv-' + Date.now() + Math.random().toString(36).substring(2,5),
+                                        date: formattedDate, time: rawTime, type: detectedType, kwh: kwhVal, cost: kwhVal * configs[detectedType]
+                                    });
+                                }
+                            }
+                        }
+                    }
+                });
+
+                if (tempCsvCharges.length > 0) {
+                    document.getElementById('csvResults').style.display = 'block';
+                    refreshCsvCardsList();
+                } else { alert("Aucune ligne lisible."); }
+            };
+            reader.readAsText(fileInput.files[0]);
+        }
+
+        function refreshCsvCardsList() {
+            const container = document.getElementById('csvCardsList'); container.innerHTML = '';
+            tempCsvCharges.forEach((c, idx) => {
+                const card = document.createElement('div');
+                card.style.background = '#f8f7f6'; card.style.padding = '10px'; card.style.borderRadius = '10px'; card.style.border = '1px solid var(--border)'; card.style.fontSize = '13px';
+                card.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+                        <b>📅 ${c.date} (${c.time})</b> <b style="color:var(--primary);">${c.kwh.toFixed(2)} kWh</b>
+                    </div>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
+                        <select onchange="updateCsvType(${idx}, this.value)" style="padding:4px; font-size:12px;">
+                            <option value="hc" ${c.type==='hc'?'selected':''}>Maison HC</option>
+                            <option value="hp" ${c.type==='hp'?'selected':''}>Maison HP</option>
+                            <option value="borne" ${c.type==='borne'?'selected':''}>Borne</option>
+                        </select>
+                        <div style="text-align:right; font-weight:700; align-self:center;">${c.cost.toFixed(2)} €</div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function updateCsvType(idx, val) {
+            tempCsvCharges[idx].type = val;
+            tempCsvCharges[idx].cost = tempCsvCharges[idx].kwh * getConfigs()[val];
+            refreshCsvCardsList();
+        }
+
+        function saveAllCsvCharges() {
+            const charges = getCharges();
+            tempCsvCharges.forEach(c => { charges.push({ id: c.id, date: c.date, type: c.type, kwh: c.kwh, cost: c.cost }); });
+            setCharges(charges);
+            document.getElementById('csvResults').style.display = 'none';
+            document.getElementById('csvInput').value = '';
+            if(tempCsvCharges.length > 0) globalSelectedMonth = tempCsvCharges[0].date.substring(0, 7);
+            alert(`Importation réussie !`);
+            switchTab('home', document.querySelectorAll('.nav-item')[0]);
+        }
+
+        function openEditModal(id) {
+            const target = getCharges().find(c => c.id === id);
+            if(!target) return;
+            document.getElementById('editId').value = target.id;
+            document.getElementById('editDate').value = target.date;
+            document.getElementById('editType').value = target.type;
+            document.getElementById('editKwh').value = target.kwh;
+            document.getElementById('editCost').value = target.cost;
+            document.getElementById('editModal').style.display = 'flex';
+        }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        function submitEditCharge(e) {
+            e.preventDefault();
+            const id = document.getElementById('editId').value;
+            const charges = getCharges(); const index = charges.findIndex(c => c.id === id);
+            if(index !== -1) {
+                charges[index].date = document.getElementById('editDate').value;
+                charges[index].type = document.getElementById('editType').value;
+                charges[index].kwh = parseFloat(document.getElementById('editKwh').value);
+                charges[index].cost = parseFloat(document.getElementById('editCost').value);
+                setCharges(charges);
+            }
+            closeModal('editModal'); updateDashboard();
+        }
+        function deleteCharge(id) {
+            if(confirm("Supprimer cette session ?")) {
+                setCharges(getCharges().filter(c => c.id !== id));
+                updateDashboard();
+            }
+        }
+
+        function exportDataData() {
+            const dataStr = JSON.stringify({ charges: getCharges(), km: getKmRecords(), config: getConfigs() }, null, 2);
+            const blob = new Blob([dataStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = `ElecCharge_Sauvegarde_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        }
+
+        function importDataData(e) {
+            const file = e.target.files[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const parsed = JSON.parse(evt.target.result);
+                    if (parsed.charges) setCharges(parsed.charges);
+                    if (parsed.km) setKmRecords(parsed.km);
+                    if (parsed.config) localStorage.setItem('ev_rates_v7', JSON.stringify(parsed.config));
+                    alert("Restauration complète effectuée !");
+                    updateDashboard();
+                } catch(err) { alert("Fichier invalide."); }
+            };
+            reader.readAsText(file);
+        }
+
         function loadSettingsForm() {
             const c = getConfigs();
-            document.getElementById('rateHc').value = c.hc;
-            document.getElementById('rateHp').value = c.hp;
-            document.getElementById('rateBorne').value = c.borne;
-            document.getElementById('fuelCons').value = c.fuelCons || 4.7;
-            document.getElementById('fuelPrice').value = c.fuelPrice || 1.85;
-            document.getElementById('evCons').value = c.evCons || 16.0;
+            document.getElementById('rateHc').value = c.hc; document.getElementById('rateHp').value = c.hp; document.getElementById('rateBorne').value = c.borne;
+            document.getElementById('renaultLoss').value = c.renaultLoss || 9.3;
+            document.getElementById('sohValue').value = c.soh || 94.0;
+            document.getElementById('fuelCons').value = c.fuelCons; document.getElementById('fuelPrice').value = c.fuelPrice; document.getElementById('evCons').value = c.evCons;
         }
 
         function saveSettings(e) {
             e.preventDefault();
-            const configs = {
-                hc: parseFloat(document.getElementById('rateHc').value),
-                hp: parseFloat(document.getElementById('rateHp').value),
-                borne: parseFloat(document.getElementById('rateBorne').value),
-                fuelCons: parseFloat(document.getElementById('fuelCons').value),
-                fuelPrice: parseFloat(document.getElementById('fuelPrice').value),
-                evCons: parseFloat(document.getElementById('evCons').value)
-            };
-            localStorage.setItem('ev_rates_v4', JSON.stringify(configs));
-            alert("Paramètres sauvegardés !");
-            updateDashboard();
-        }
-
-        // --- ARCHIVAGE, TOTAUX ET TABLEAU DE BORD ---
-        function populateMonthSelector() {
-            const charges = getCharges();
-            const select = document.getElementById('filterMonth');
-            const monthsMap = {};
-            const now = new Date();
-            const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-            monthsMap[currentMonthKey] = formatMonthLabel(currentMonthKey);
-
-            charges.forEach(c => {
-                const mKey = c.date.substring(0, 7);
-                monthsMap[mKey] = formatMonthLabel(mKey);
-            });
-
-            const savedValue = select.value || currentMonthKey;
-            select.innerHTML = '';
-            const sortedMonths = Object.keys(monthsMap).sort().reverse();
-            sortedMonths.forEach(key => {
-                const opt = document.createElement('option');
-                opt.value = key; opt.textContent = monthsMap[key];
-                select.appendChild(opt);
-            });
-            select.value = sortedMonths.includes(savedValue) ? savedValue : currentMonthKey;
+            localStorage.setItem('ev_rates_v7', JSON.stringify({
+                hc: parseFloat(document.getElementById('rateHc').value), hp: parseFloat(document.getElementById('rateHp').value), borne: parseFloat(document.getElementById('rateBorne').value),
+                renaultLoss: parseFloat(document.getElementById('renaultLoss').value), soh: parseFloat(document.getElementById('sohValue').value) || 94,
+                fuelCons: parseFloat(document.getElementById('fuelCons').value), fuelPrice: parseFloat(document.getElementById('fuelPrice').value), evCons: parseFloat(document.getElementById('evCons').value)
+            }));
+            alert("Configurations sauvegardées !"); updateDashboard();
         }
 
         function formatMonthLabel(ym) {
-            const [y, m] = ym.split('-');
-            return new Date(y, m - 1, 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }).replace(/^\w/, c => c.toUpperCase());
+            const parts = ym.split('-'); if(parts.length < 2) return ym;
+            return new Date(parts[0], parts[1] - 1, 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }).replace(/^\w/, c => c.toUpperCase());
         }
 
-        function updateDashboard() {
-            populateMonthSelector();
-            const selectedMonth = document.getElementById('filterMonth').value;
-            const charges = getCharges();
-            const configs = getConfigs();
+        function renderMonthsSummaryList() {
+            const container = document.getElementById('monthsSummaryList'); if(!container) return;
+            container.innerHTML = '';
+            
+            const charges = getCharges(); const kmRecords = getKmRecords();
+            const monthsMap = {};
 
-            // 1. Calculs mensuels filtrés
-            const filteredCharges = charges.filter(c => c.date.startsWith(selectedMonth));
-            let totalCost = 0, totalKwh = 0, costHc = 0, costHp = 0, costBorne = 0;
-
-            filteredCharges.forEach(c => {
-                totalCost += c.cost;
-                totalKwh += c.kwh;
-                if (c.type === 'hc') costHc += c.cost;
-                if (c.type === 'hp') costHp += c.cost;
-                if (c.type === 'borne') costBorne += c.cost;
+            charges.forEach(c => {
+                if (c.date) {
+                    const mKey = c.date.substring(0, 7);
+                    if (!monthsMap[mKey]) monthsMap[mKey] = { cost: 0, kwh: 0 };
+                    monthsMap[mKey].cost += c.cost;
+                    monthsMap[mKey].kwh += c.kwh;
+                }
             });
 
-            // 2. Calculs Annuels Globaux (Archivage automatique par année en cours)
-            const currentYear = new Date().getFullYear().toString();
-            const annualCharges = charges.filter(c => c.date.startsWith(currentYear));
-            let annualCost = 0, annualKwh = 0;
-            annualCharges.forEach(c => { annualCost += c.cost; annualKwh += c.kwh; });
+            const currentMonthKey = new Date().toISOString().substring(0, 7);
+            if (!monthsMap[currentMonthKey]) monthsMap[currentMonthKey] = { cost: 0, kwh: 0 };
 
-            // 3. Calcul Économies Carburant (Rapport à l'ancienne voiture à essence)
-            // Km estimés = (kWh / conso_moyenne_ve) * 100
-            const evCons = configs.evCons || 16.0;
-            const fuelCons = configs.fuelCons || 4.7;
-            const fuelPrice = configs.fuelPrice || 1.85;
+            const sortedMonths = Object.keys(monthsMap).sort().reverse();
+            sortedMonths.forEach(mKey => {
+                const data = monthsMap[mKey];
+                const km = kmRecords[mKey] || 0;
+                
+                let detailStr = `${data.kwh.toFixed(1)} kWh`;
+                if(km > 0) {
+                    const realAvg = (data.kwh / km) * 100;
+                    detailStr += ` • ${km} km • ${realAvg.toFixed(1)} kWh/100`;
+                } else {
+                    detailStr += ` • Pas de km enregistré`;
+                }
 
-            let monthlyKm = (totalKwh / evCons) * 100;
-            let equivalentFuelLitres = (monthlyKm / 100) * fuelCons;
-            let equivalentFuelCost = equivalentFuelLitres * fuelPrice;
-            let monthlySavings = equivalentFuelCost - totalCost;
+                const card = document.createElement('div');
+                card.className = 'monthly-summary-card';
+                if(mKey === globalSelectedMonth) { card.style.borderColor = 'var(--primary)'; card.style.background = '#f0f9ff'; }
+                
+                card.onclick = function() { globalSelectedMonth = mKey; updateDashboard(); document.getElementById('filterMonth').value = mKey; };
+                card.innerHTML = `
+                    <div class="monthly-summary-header">
+                        <span>📅 ${formatMonthLabel(mKey)}</span>
+                        <span style="color:var(--primary);">${data.cost.toFixed(2)} €</span>
+                    </div>
+                    <div class="monthly-summary-details">${detailStr}</div>
+                `;
+                container.appendChild(card);
+            });
+        }
 
-            let annualKm = (annualKwh / evCons) * 100;
-            let annFuelLitres = (annualKm / 100) * fuelCons;
-            let annFuelCost = annFuelLitres * fuelPrice;
-            let annualSavings = annFuelCost - annualCost;
+        function populateMonthFilterDropdown() {
+            const charges = getCharges(); const select = document.getElementById('filterMonth'); if(!select) return;
+            const monthsSet = new Set();
+            monthsSet.add(new Date().toISOString().substring(0, 7));
+            charges.forEach(c => { if(c.date) monthsSet.add(c.date.substring(0, 7)); });
 
-            // Remplissage interface Accueil
-            document.getElementById('currentMonthLabel').textContent = `Mois sélectionné : ${formatMonthLabel(selectedMonth)}`;
-            document.getElementById('totalCost').textContent = totalCost.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
-            document.getElementById('totalKwh').textContent = `${totalKwh.toLocaleString('fr-FR', { maximumFractionDigits: 1 })} kWh`;
-            document.getElementById('homeCost').textContent = (costHc + costHp).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
-            document.getElementById('stationCost').textContent = `Borne Publique : ${costBorne.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}`;
-            
-            document.getElementById('savingsValue').textContent = `${monthlySavings > 0 ? '+' : ''}${monthlySavings.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })} éco`;
-            document.getElementById('annualCostTotal').textContent = annualCost.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
-            
-            // Boite bilan annuel
-            document.getElementById('annCost').textContent = annualCost.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
-            document.getElementById('annSavings').textContent = `${annualSavings.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}`;
+            const savedVal = select.value || globalSelectedMonth; select.innerHTML = '';
+            const sorted = Array.from(monthsSet).sort().reverse();
+            sorted.forEach(mKey => {
+                const opt = document.createElement('option'); opt.value = mKey; opt.textContent = formatMonthLabel(mKey);
+                select.appendChild(opt);
+            });
+            select.value = sorted.includes(savedVal) ? savedVal : sorted[0];
+        }
 
-            updateBar('Hc', costHc, totalCost);
-            updateBar('Hp', costHp, totalCost);
-            updateBar('Borne', costBorne, totalCost);
+        function renderHistoryDetailedList() {
+            const selectEl = document.getElementById('filterMonth'); if(!selectEl || !selectEl.value) return;
+            const targetMonth = selectEl.value;
+            const filtered = getCharges().filter(c => c.date && c.date.startsWith(targetMonth));
+            const listContainer = document.getElementById('chargeList'); listContainer.innerHTML = '';
 
-            // Remplissage Liste historique
-            const listContainer = document.getElementById('chargeList');
-            listContainer.innerHTML = '';
+            if (!filtered.length) { listContainer.innerHTML = '<div class="empty-state">Aucune session.</div>'; return; }
 
-            if (!filteredCharges.length) {
-                listContainer.innerHTML = '<div class="empty-state">Aucune donnée pour ce mois.</div>';
-                return;
-            }
-
-            filteredCharges.sort((a,b) => new Date(b.date) - new Date(a.date));
-            filteredCharges.forEach(c => {
-                const item = document.createElement('div');
-                item.className = 'charge-item';
+            filtered.sort((a,b) => new Date(b.date) - new Date(a.date));
+            filtered.forEach(c => {
+                const item = document.createElement('div'); item.className = 'charge-item';
                 let label = '', bClass = '';
                 if(c.type==='hc'){ label='Maison HC'; bClass='badge-hc'; }
                 if(c.type==='hp'){ label='Maison HP'; bClass='badge-hp'; }
@@ -730,14 +764,7 @@
             });
         }
 
-        function updateBar(t, v, total) {
-            const p = total > 0 ? (v / total) * 100 : 0;
-            document.getElementById(`bar${t}`).style.width = `${p}%`;
-            document.getElementById(`label${t}`).textContent = `${v.toLocaleString('fr-FR', {style:'currency', currency:'EUR'})} (${Math.round(p)}%)`;
-        }
-
         loadSettingsForm();
-        populateMonthSelector();
         updateDashboard();
     </script>
 </body>
