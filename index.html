@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="ElecCharge">
-    <title>ElecCharge v7.1</title>
+    <title>ElecCharge v7.2</title>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
         :root {
@@ -226,7 +226,7 @@
         <div style="border-top: 1px solid var(--border); padding-top:14px;">
             <h3 style="font-size:14px; color:var(--text-muted); margin-bottom:10px;">Détail des sessions de charge :</h3>
             <div class="filter-container">
-                <select id="filterMonth" onchange="renderHistoryDetailedList()"></select>
+                <select id="filterMonth" onchange="onHistoryDropdownChange()"></select>
             </div>
             <div class="charge-list" id="chargeList"></div>
         </div>
@@ -300,6 +300,13 @@
     </nav>
 
     <script>
+        // Correction de la date courante par défaut
+        function getCurrentMonthKey() {
+            const d = new Date();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            return `${d.getFullYear()}-${month}`;
+        }
+
         if (!localStorage.getItem('ev_charges')) localStorage.setItem('ev_charges', JSON.stringify([]));
         if (!localStorage.getItem('ev_monthly_km')) localStorage.setItem('ev_monthly_km', JSON.stringify({}));
         if (!localStorage.getItem('ev_rates_v7')) {
@@ -310,7 +317,7 @@
 
         let tempScannedCharges = [];
         let tempCsvCharges = [];
-        let globalSelectedMonth = new Date().toISOString().substring(0, 7);
+        let globalSelectedMonth = getCurrentMonthKey();
 
         function getCharges() { return JSON.parse(localStorage.getItem('ev_charges')); }
         function setCharges(charges) { localStorage.setItem('ev_charges', JSON.stringify(charges)); }
@@ -359,7 +366,15 @@
             document.getElementById('chargeForm').reset();
             document.getElementById('chargeDate').value = new Date().toISOString().split('T')[0];
             handlePlaceChange();
-            globalSelectedMonth = date.substring(0, 7);
+
+            // Correction Safari Sécurisée pour extraire YYYY-MM
+            if(date && date.includes('-')) {
+                const p = date.split('-');
+                globalSelectedMonth = `${p[0]}-${p[1]}`;
+            } else {
+                globalSelectedMonth = getCurrentMonthKey();
+            }
+
             alert("Recharge ajoutée !");
             switchTab('home', document.querySelectorAll('.nav-item')[0]);
         }
@@ -415,8 +430,7 @@
                 const matchRenault = line.match(rRenaultDate);
                 if (matchRenault) {
                     const dayNum = String(matchRenault[2]).padStart(2, '0');
-                    const currentYm = new Date().toISOString().substring(0, 7);
-                    currentSessionDate = `${currentYm}-${dayNum}`;
+                    currentSessionDate = `${getCurrentMonthKey().substring(0,4)}-${getCurrentMonthKey().substring(5,7)}-${dayNum}`;
                     currentSessionTime = `${matchRenault[3]}:${matchRenault[4]}`;
                     isRenaultApp = true; continue;
                 }
@@ -502,7 +516,10 @@
             });
             setCharges(charges);
             document.getElementById('scannedResults').style.display = 'none';
-            if (tempScannedCharges.length > 0) globalSelectedMonth = tempScannedCharges[0].date.substring(0, 7);
+            if (tempScannedCharges.length > 0 && tempScannedCharges[0].date.includes('-')) {
+                const p = tempScannedCharges[0].date.split('-');
+                globalSelectedMonth = `${p[0]}-${p[1]}`;
+            }
             alert("Sessions enregistrées !");
             switchTab('home', document.querySelectorAll('.nav-item')[0]);
         }
@@ -585,7 +602,10 @@
             setCharges(charges);
             document.getElementById('csvResults').style.display = 'none';
             document.getElementById('csvInput').value = '';
-            if(tempCsvCharges.length > 0) globalSelectedMonth = tempCsvCharges[0].date.substring(0, 7);
+            if(tempCsvCharges.length > 0 && tempCsvCharges[0].date.includes('-')) {
+                const p = tempCsvCharges[0].date.split('-');
+                globalSelectedMonth = `${p[0]}-${p[1]}`;
+            }
             alert(`Importation réussie !`);
             switchTab('home', document.querySelectorAll('.nav-item')[0]);
         }
@@ -606,172 +626,4 @@
             const id = document.getElementById('editId').value;
             const charges = getCharges(); const index = charges.findIndex(c => c.id === id);
             if(index !== -1) {
-                charges[index].date = document.getElementById('editDate').value;
-                charges[index].type = document.getElementById('editType').value;
-                charges[index].kwh = parseFloat(document.getElementById('editKwh').value);
-                charges[index].cost = parseFloat(document.getElementById('editCost').value);
-                setCharges(charges);
-            }
-            closeModal('editModal'); updateDashboard();
-        }
-        function deleteCharge(id) {
-            if(confirm("Supprimer cette session ?")) {
-                setCharges(getCharges().filter(c => c.id !== id));
-                updateDashboard();
-            }
-        }
-
-        function exportDataData() {
-            const dataStr = JSON.stringify({ charges: getCharges(), km: getKmRecords(), config: getConfigs() }, null, 2);
-            const blob = new Blob([dataStr], { type: "application/json" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url; a.download = `ElecCharge_Sauvegarde_${new Date().toISOString().split('T')[0]}.json`;
-            document.body.appendChild(a); a.click(); document.body.removeChild(a);
-        }
-
-        function importDataData(e) {
-            const file = e.target.files[0]; if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(evt) {
-                try {
-                    const parsed = JSON.parse(evt.target.result);
-                    if (parsed.charges) setCharges(parsed.charges);
-                    if (parsed.km) setKmRecords(parsed.km);
-                    if (parsed.config) localStorage.setItem('ev_rates_v7', JSON.stringify(parsed.config));
-                    alert("Restauration complète effectuée !");
-                    updateDashboard();
-                } catch(err) { alert("Fichier invalide."); }
-            };
-            reader.readAsText(file);
-        }
-
-        function loadSettingsForm() {
-            const c = getConfigs();
-            document.getElementById('rateHc').value = c.hc; document.getElementById('rateHp').value = c.hp; document.getElementById('rateBorne').value = c.borne;
-            document.getElementById('renaultLoss').value = c.renaultLoss || 9.3;
-            document.getElementById('sohValue').value = c.soh || 94.0;
-            document.getElementById('fuelCons').value = c.fuelCons; document.getElementById('fuelPrice').value = c.fuelPrice; document.getElementById('evCons').value = c.evCons;
-        }
-
-        function saveSettings(e) {
-            e.preventDefault();
-            localStorage.setItem('ev_rates_v7', JSON.stringify({
-                hc: parseFloat(document.getElementById('rateHc').value), hp: parseFloat(document.getElementById('rateHp').value), borne: parseFloat(document.getElementById('rateBorne').value),
-                renaultLoss: parseFloat(document.getElementById('renaultLoss').value), soh: parseFloat(document.getElementById('sohValue').value) || 94,
-                fuelCons: parseFloat(document.getElementById('fuelCons').value), fuelPrice: parseFloat(document.getElementById('fuelPrice').value), evCons: parseFloat(document.getElementById('evCons').value)
-            }));
-            alert("Configurations sauvegardées !"); updateDashboard();
-        }
-
-        function formatMonthLabel(ym) {
-            const parts = ym.split('-'); if(parts.length < 2) return ym;
-            return new Date(parts[0], parts[1] - 1, 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }).replace(/^\w/, c => c.toUpperCase());
-        }
-
-        function renderMonthsSummaryList() {
-            const container = document.getElementById('monthsSummaryList'); if(!container) return;
-            container.innerHTML = '';
-            
-            const charges = getCharges(); const kmRecords = getKmRecords();
-            const monthsMap = {};
-
-            charges.forEach(c => {
-                if (c.date) {
-                    const mKey = c.date.substring(0, 7);
-                    if (!monthsMap[mKey]) monthsMap[mKey] = { cost: 0, kwh: 0 };
-                    monthsMap[mKey].cost += c.cost;
-                    monthsMap[mKey].kwh += c.kwh;
-                }
-            });
-
-            const currentMonthKey = new Date().toISOString().substring(0, 7);
-            if (!monthsMap[currentMonthKey]) monthsMap[currentMonthKey] = { cost: 0, kwh: 0 };
-
-            const sortedMonths = Object.keys(monthsMap).sort().reverse();
-            sortedMonths.forEach(mKey => {
-                const data = monthsMap[mKey];
-                const km = kmRecords[mKey] || 0;
-                
-                let detailStr = `${data.kwh.toFixed(1)} kWh`;
-                if(km > 0) {
-                    const realAvg = (data.kwh / km) * 100;
-                    detailStr += ` • ${km} km • ${realAvg.toFixed(1)} kWh/100`;
-                } else {
-                    detailStr += ` • Pas de km enregistré`;
-                }
-
-                const card = document.createElement('div');
-                card.className = 'monthly-summary-card';
-                if(mKey === globalSelectedMonth) { card.style.borderColor = 'var(--primary)'; card.style.background = '#f0f9ff'; }
-                
-                card.onclick = function() { globalSelectedMonth = mKey; updateDashboard(); document.getElementById('filterMonth').value = mKey; };
-                card.innerHTML = `
-                    <div class="monthly-summary-header">
-                        <span>📅 ${formatMonthLabel(mKey)}</span>
-                        <span style="color:var(--primary);">${data.cost.toFixed(2)} €</span>
-                    </div>
-                    <div class="monthly-summary-details">${detailStr}</div>
-                `;
-                container.appendChild(card);
-            });
-        }
-
-        function populateMonthFilterDropdown() {
-            const charges = getCharges(); const select = document.getElementById('filterMonth'); if(!select) return;
-            const monthsSet = new Set();
-            monthsSet.add(new Date().toISOString().substring(0, 7));
-            charges.forEach(c => { if(c.date) monthsSet.add(c.date.substring(0, 7)); });
-
-            const savedVal = select.value || globalSelectedMonth; select.innerHTML = '';
-            const sorted = Array.from(monthsSet).sort().reverse();
-            sorted.forEach(mKey => {
-                const opt = document.createElement('option'); opt.value = mKey; opt.textContent = formatMonthLabel(mKey);
-                select.appendChild(opt);
-            });
-            select.value = sorted.includes(savedVal) ? savedVal : sorted[0];
-        }
-
-        function renderHistoryDetailedList() {
-            const selectEl = document.getElementById('filterMonth'); if(!selectEl || !selectEl.value) return;
-            const targetMonth = selectEl.value;
-            const filtered = getCharges().filter(c => c.date && c.date.startsWith(targetMonth));
-            const listContainer = document.getElementById('chargeList'); listContainer.innerHTML = '';
-
-            if (!filtered.length) { listContainer.innerHTML = '<div class="empty-state">Aucune session.</div>'; return; }
-
-            // CORRECTION SAFARI : Tri textuel direct des chaînes (ex: "2026-05-21") pour éviter le bug New Date()
-            filtered.sort((a, b) => b.date.localeCompare(a.date));
-            
-            filtered.forEach(c => {
-                const item = document.createElement('div'); item.className = 'charge-item';
-                let label = '', bClass = '';
-                if(c.type==='hc'){ label='Maison HC'; bClass='badge-hc'; }
-                if(c.type==='hp'){ label='Maison HP'; bClass='badge-hp'; }
-                if(c.type==='borne'){ label='Borne'; bClass='badge-borne'; }
-
-                // Nettoyage affichage date locale pour l'iPhone
-                const dateParts = c.date.split('-');
-                const formattedDate = dateParts.length === 3 ? `${dateParts[2]}/${dateParts[1]}` : c.date;
-
-                item.innerHTML = `
-                    <div class="charge-info">
-                        <p><span class="type-badge ${bClass}">${label}</span>${c.kwh.toFixed(1)} kWh</p>
-                        <span>Le ${formattedDate}</span>
-                    </div>
-                    <div class="charge-cost">
-                        <p>${c.cost.toLocaleString('fr-FR', {style:'currency', currency:'EUR'})}</p>
-                        <div class="action-btns">
-                            <button class="btn-action btn-edit" onclick="openEditModal('${c.id}')">Modifier</button>
-                            <button class="btn-action btn-delete" onclick="deleteCharge('${c.id}')">Supprimer</button>
-                        </div>
-                    </div>
-                `;
-                listContainer.appendChild(item);
-            });
-        }
-
-        loadSettingsForm();
-        updateDashboard();
-    </script>
-</body>
-</html>
+                charges[index].date = document.getElementById('editDate').value
