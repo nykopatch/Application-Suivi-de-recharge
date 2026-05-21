@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="ElecCharge">
+    <title>ElecCharge v4</title>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #f2f4f7;
+            --card-bg: #ffffff;
+            --text-main: #1c1917;
+            --text-muted: #78716c;
+            --primary: #0284c7;
+            --primary-light: #e0f2fe;
+            --success: #16a34a;
+            --warning: #ea580c;
+            --border: #e7e5e4;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0; padding: 0;
+            -webkit-tap-highlight-color: transparent;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: env(safe-area-inset-top) 16px calc(env(safe-area-inset-bottom) + 80px) 16px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .tab-content { display: none; animation: fadeIn 0.2s ease-out; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        header { padding: 20px 0 10px 0; margin-bottom: 10px; }
+        header h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: rgba(255, 255, 255, 0.94); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            border-top: 1px solid var(--border); display: flex; justify-content: space-around;
+            padding-top: 8px; padding-bottom: calc(8px + env(safe-area-inset-bottom));
+            z-index: 999; max-width: 500px; margin: 0 auto;
+        }
+
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center; background: none; border: none;
+            color: var(--text-muted); font-size: 11px; font-weight: 500; cursor: pointer; width: 25%;
+        }
+        .nav-item.active { color: var(--primary); font-weight: 700; }
+        .nav-icon { font-size: 22px; margin-bottom: 2px; }
+
+        .card { background: var(--card-bg); padding: 18px; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); margin-bottom: 14px; }
+        .stats-main { background: linear-gradient(135deg, #0284c7, #0369a1); color: white; }
+        .stats-main h3 { color: #bae6fd; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .stats-main .main-val { font-size: 32px; font-weight: 800; }
+
+        .card-savings { background: linear-gradient(135deg, #16a34a, #15803d); color: white; display: flex; justify-content: space-between; align-items: center; }
+        .card-savings h3 { color: #bbf7d0; font-size: 12px; text-transform: uppercase; }
+        .card-savings .savings-val { font-size: 22px; font-weight: 800; }
+
+        .stats-sub-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+        .sub-card h3 { font-size: 11px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
+        .sub-card .val { font-size: 18px; font-weight: 700; }
+
+        .bar-group { margin-bottom: 12px; }
+        .bar-label { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; color: var(--text-muted); }
+        .bar-bg { background: #f5f5f4; height: 8px; border-radius: 4px; overflow: hidden; }
+        .bar-fill { height: 100%; border-radius: 4px; transition: width 0.3s ease; }
+        .bar-hc { background-color: #22c55e; }
+        .bar-hp { background-color: #eab308; }
+        .bar-borne { background-color: #3b82f6; }
+
+        .form-group { margin-bottom: 14px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-muted); }
+        .form-group input, .form-group select {
+            width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 10px; font-size: 16px; outline: none; background: #f8f7f6;
+        }
+        .form-group input:focus, .form-group select:focus { border-color: var(--primary); background: white; }
+        
+        .checkbox-group { display: flex; align-items: center; background: #f8f7f6; padding: 12px; border-radius: 10px; border: 1px solid var(--border); cursor: pointer; margin-bottom: 14px; }
+        .checkbox-group input { width: auto; margin-right: 12px; transform: scale(1.2); }
+        .checkbox-group label { margin-bottom: 0; cursor: pointer; flex-grow: 1; }
+
+        .btn-submit { background: var(--primary); color: white; border: none; width: 100%; padding: 14px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; }
+        .filter-container { margin-bottom: 14px; display: flex; gap: 8px; }
+        .filter-container select { flex-grow: 1; background: var(--card-bg); border: 1px solid var(--border); padding: 10px 12px; border-radius: 10px; font-size: 16px; font-weight: 600; }
+
+        .charge-list { display: flex; flex-direction: column; gap: 10px; }
+        .charge-item { background: var(--card-bg); padding: 14px; border-radius: 14px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
+        .charge-info p { font-weight: 600; font-size: 15px; }
+        .charge-info span { font-size: 12px; color: var(--text-muted); }
+        .type-badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; margin-right: 6px; text-transform: uppercase; }
+        .badge-hc { background: #dcfce7; color: #16a34a; }
+        .badge-hp { background: #fef9c3; color: #ca8a04; }
+        .badge-borne { background: #dbeafe; color: #2563eb; }
+        .charge-cost { text-align: right; }
+        .charge-cost p { font-weight: 700; font-size: 16px; }
+        .action-btns { margin-top: 4px; display: flex; gap: 12px; justify-content: flex-end; }
+        .btn-action { background: none; border: none; font-size: 12px; cursor: pointer; font-weight: 600; }
+        .btn-edit { color: var(--primary); }
+        .btn-delete { color: #ef4444; }
+
+        .scan-zone { border: 2px dashed var(--primary); padding: 20px; border-radius: 12px; text-align: center; background: #f0f9ff; color: var(--primary); font-weight: 600; margin-bottom: 14px; cursor: pointer; position: relative; }
+        .scan-zone input { position: absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer; }
+        #ocrStatus { font-weight: 600; color: var(--primary); text-align: center; margin: 10px 0; display: none; }
+        .scanned-card { border: 2px solid #10b981; background: #f0fdf4; padding: 12px; border-radius: 12px; margin-bottom: 10px; }
+
+        .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 14px; }
+        
+        /* Modal d'édition */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: flex-end; z-index: 1000; }
+        .modal-content { background: var(--card-bg); width: 100%; max-width: 500px; margin: 0 auto; border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 24px; padding-bottom: calc(24px + env(safe-area-inset-bottom)); max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .btn-close { background: #f5f5f4; border: none; width: 30px; height: 30px; border-radius: 50%; font-weight: 700; cursor: pointer; }
+
+        .annual-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+        .annual-box { background: #f8f7f6; padding: 12px; border-radius: 10px; border: 1px solid var(--border); }
+        .annual-box p { font-size: 16px; font-weight: 700; color: var(--text-main); }
+        .annual-box span { font-size: 11px; color: var(--text-muted); }
+    </style>
+</head>
+<body>
+
+    <!-- ================= ONGLET 1 : ACCUEIL & COMPARATIF ESSENCE ================= -->
+    <div id="tab-home" class="tab-content active">
+        <header>
+            <h1>⚡ Tableau de Bord</h1>
+        </header>
+        
+        <div class="card stats-main">
+            <h3>Coût de ce Mois</h3>
+            <div class="main-val" id="totalCost">0,00 €</div>
+            <div style="margin-top: 6px; font-size: 13px; opacity: 0.9;" id="currentMonthLabel">Mois : --</div>
+        </div>
+
+        <!-- Carte Économies VS Essence -->
+        <div class="card card-savings">
+            <div>
+                <h3>Économies vs Essence (4,7L/100)</h3>
+                <div class="savings-val" id="savingsValue">0,00 € gagnés</div>
+            </div>
+            <div style="font-size: 28px;">🍃</div>
+        </div>
+
+        <div class="stats-sub-grid">
+            <div class="card sub-card">
+                <h3>Énergie du Mois</h3>
+                <div class="val" id="totalKwh">0 kWh</div>
+            </div>
+            <div class="card sub-card">
+                <h3>Total Cumulé Annuel</h3>
+                <div class="val" id="annualCostTotal">0,00 €</div>
+            </div>
+        </div>
+
+        <!-- Répartition -->
+        <div class="card">
+            <h3 style="font-size: 12px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px;">Détails des dépenses mensuelles</h3>
+            <div class="bar-group">
+                <div class="bar-label"><span>Heures Creuses (Maison)</span><span id="labelHc">0 €</span></div>
+                <div class="bar-bg"><div id="barHc" class="bar-fill bar-hc" style="width: 0%"></div></div>
+            </div>
+            <div class="bar-group">
+                <div class="bar-label"><span>Heures Pleines (Maison)</span><span id="labelHp">0 €</span></div>
+                <div class="bar-bg"><div id="barHp" class="bar-fill bar-hp" style="width: 0%"></div></div>
+            </div>
+            <div class="bar-group">
+                <div class="bar-label"><span>Bornes Extérieures</span><span id="labelBorne">0 €</span></div>
+                <div class="bar-bg"><div id="barBorne" class="bar-fill bar-borne" style="width: 0%"></div></div>
+            </div>
+        </div>
+
+        <!-- Vue Annuelle Rapide -->
+        <div class="card">
+            <h3 style="font-size: 13px; font-weight: 700; margin-bottom: 8px;">📊 Bilan de l'année en cours</h3>
+            <div class="annual-summary">
+                <div class="annual-box">
+                    <span>Dépensé au total</span>
+                    <p id="annCost">0,00 €</p>
+                </div>
+                <div class="annual-box">
+                    <span>Économisé vs Hybride</span>
+                    <p id="annSavings" style="color:var(--success);">0,00 €</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ================= ONGLET 2 : AJOUTER / SCANNER ================= -->
+    <div id="tab-add" class="tab-content">
+        <header>
+            <h1>➕ Nouvelle Recharge</h1>
+        </header>
+
+        <div class="card">
+            <h3 style="font-size:14px; margin-bottom:8px;">Scanner une Capture d'Écran</h3>
+            <div class="scan-zone">
+                📸 Appuie pour importer ta capture d'écran
+                <input type="file" id="screenshotInput" accept="image/*" onchange="processScreenshot()">
+            </div>
+            <div id="ocrStatus">Lecture automatique en cours...</div>
+            
+            <div id="scannedResults" style="display:none;">
+                <div id="scannedCardsList"></div>
+                <button class="btn-submit" onclick="saveAllScanned()" style="background:#10b981;">Valider et enregistrer les sessions</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 style="font-size:14px; margin-bottom:12px;">Ajout Manuel rapide</h3>
+            <form id="chargeForm" onsubmit="saveManualCharge(event)">
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" id="chargeDate" required>
+                </div>
+                <div class="form-group">
+                    <label>Lieu</label>
+                    <select id="chargePlace" onchange="handlePlaceChange()">
+                        <option value="maison">À la maison</option>
+                        <option value="borne">Borne Extérieure</option>
+                    </select>
+                </div>
+                <div class="checkbox-group" id="hcCheckboxGroup">
+                    <input type="checkbox" id="isHc" onchange="recalculateManualCost()">
+                    <label for="isHc"><b>Tarif Heures Creuses (HC)</b><br><span style="font-size:11px; color:var(--text-muted);">Décoché = Heures Pleines</span></label>
+                </div>
+                <div class="form-group">
+                    <label>Énergie injectée (kWh)</label>
+                    <input type="number" id="kwh" step="0.01" placeholder="ex: 42.1" required oninput="recalculateManualCost()">
+                </div>
+                <div class="form-group">
+                    <label>Coût total estimé (€)</label>
+                    <input type="number" id="cost" step="0.01" required>
+                </div>
+                <button type="submit" class="btn-submit">Enregistrer</button>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- ================= ONGLET 3 : HISTORIQUE ARCHIVÉ PAR MOIS ================= -->
+    <div id="tab-history" class="tab-content">
+        <header>
+            <h1>📂 Archives & Historique</h1>
+        </header>
+
+        <div class="filter-container">
+            <select id="filterMonth" onchange="updateDashboard()">
+                <!-- Rempli par le script -->
+            </select>
+        </div>
+
+        <div class="charge-list" id="chargeList">
+            <!-- Rempli dynamiquement -->
+        </div>
+    </div>
+
+
+    <!-- ================= ONGLET 4 : RÉGLAGES ET CONFIG VEHICULE ================= -->
+    <div id="tab-settings" class="tab-content">
+        <header>
+            <h1>⚙️ Configuration</h1>
+        </header>
+
+        <div class="card">
+            <h3 style="font-size:14px; margin-bottom:12px;">Tarifs Électricité</h3>
+            <form onsubmit="saveSettings(event)">
+                <div class="form-group">
+                    <label>Maison - Heures Creuses (€/kWh)</label>
+                    <input type="number" id="rateHc" step="0.0001" required>
+                </div>
+                <div class="form-group">
+                    <label>Maison - Heures Pleines (€/kWh)</label>
+                    <input type="number" id="rateHp" step="0.0001" required>
+                </div>
+                <div class="form-group">
+                    <label>Borne Publique par défaut (€/kWh)</label>
+                    <input type="number" id="rateBorne" step="0.01" required>
+                </div>
+
+                <h3 style="font-size:14px; margin: 20px 0 12px 0; border-top: 1px solid var(--border); padding-top:14px;">Comparatif Essence</h3>
+                <div class="form-group">
+                    <label>Ancienne Consommation Essence (L/100km)</label>
+                    <input type="number" id="fuelCons" step="0.1" value="4.7" required>
+                </div>
+                <div class="form-group">
+                    <label>Prix estimé du carburant (€/L)</label>
+                    <input type="number" id="fuelPrice" step="0.01" value="1.85" required>
+                </div>
+                <div class="form-group">
+                    <label>Consommation moyenne de ton VE (kWh/100km)</label>
+                    <input type="number" id="evCons" step="0.1" value="16.0" required>
+                </div>
+
+                <button type="submit" class="btn-submit">Sauvegarder les paramètres</button>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- ================= MODAL D'ÉDITION DE DONNÉE ================= -->
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 style="font-size:18px; font-weight:700;">Modifier la Recharge</h2>
+                <button class="btn-close" onclick="closeModal('editModal')">✕</button>
+            </div>
+            <form id="editForm" onsubmit="submitEditCharge(event)">
+                <input type="hidden" id="editId">
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" id="editDate" required>
+                </div>
+                <div class="form-group">
+                    <label>Type / Tarif</label>
+                    <select id="editType">
+                        <option value="hc">Maison - Heures Creuses (HC)</option>
+                        <option value="hp">Maison - Heures Pleines (HP)</option>
+                        <option value="borne">Borne Extérieure</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Énergie (kWh)</label>
+                    <input type="number" id="editKwh" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label>Coût (€)</label>
+                    <input type="number" id="editCost" step="0.01" required>
+                </div>
+                <button type="submit" class="btn-submit" style="background:var(--success);">Appliquer les modifications</button>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- ================= BARRE DE NAVIGATION COMMUNE ================= -->
+    <nav class="bottom-nav">
+        <button class="nav-item active" onclick="switchTab('home', this)">
+            <span class="nav-icon">📊</span>
+            <span>Accueil</span>
+        </button>
+        <button class="nav-item" onclick="switchTab('add', this)">
+            <span class="nav-icon">➕</span>
+            <span>Ajouter</span>
+        </button>
+        <button class="nav-item" onclick="switchTab('history', this)">
+            <span class="nav-icon">📂</span>
+            <span>Historique</span>
+        </button>
+        <button class="nav-item" onclick="switchTab('settings', this)">
+            <span class="nav-icon">⚙️</span>
+            <span>Réglages</span>
+        </button>
+    </nav>
+
+    <script>
+        // Initialisation base de données locale
+        if (!localStorage.getItem('ev_charges')) localStorage.setItem('ev_charges', JSON.stringify([]));
+        if (!localStorage.getItem('ev_rates_v4')) {
+            localStorage.setItem('ev_rates_v4', JSON.stringify({ 
+                hc: 0.2068, hp: 0.2512, borne: 0.45,
+                fuelCons: 4.7, fuelPrice: 1.85, evCons: 16.0
+            }));
+        }
+
+        let tempScannedCharges = [];
+
+        function getCharges() { return JSON.parse(localStorage.getItem('ev_charges')); }
+        function setCharges(charges) { localStorage.setItem('ev_charges', JSON.stringify(charges)); }
+        function getConfigs() { return JSON.parse(localStorage.getItem('ev_rates_v4')); }
+
+        function switchTab(tabId, buttonEl) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+            buttonEl.classList.add('active');
+            updateDashboard();
+        }
+
+        document.getElementById('chargeDate').value = new Date().toISOString().split('T')[0];
+
+        function handlePlaceChange() {
+            const place = document.getElementById('chargePlace').value;
+            document.getElementById('hcCheckboxGroup').style.display = (place === 'maison') ? 'flex' : 'none';
+            recalculateManualCost();
+        }
+
+        function recalculateManualCost() {
+            const place = document.getElementById('chargePlace').value;
+            const isHc = document.getElementById('isHc').checked;
+            const kwh = parseFloat(document.getElementById('kwh').value) || 0;
+            const configs = getConfigs();
+            let type = (place === 'maison') ? (isHc ? 'hc' : 'hp') : 'borne';
+            document.getElementById('cost').value = (kwh * configs[type]).toFixed(2);
+        }
+
+        function saveManualCharge(e) {
+            e.preventDefault();
+            const date = document.getElementById('chargeDate').value;
+            const place = document.getElementById('chargePlace').value;
+            const isHc = document.getElementById('isHc').checked;
+            const kwh = parseFloat(document.getElementById('kwh').value);
+            const cost = parseFloat(document.getElementById('cost').value);
+            let type = (place === 'maison') ? (isHc ? 'hc' : 'hp') : 'borne';
+
+            const charges = getCharges();
+            charges.push({ id: Date.now().toString(), date, type, kwh, cost });
+            setCharges(charges);
+
+            document.getElementById('chargeForm').reset();
+            document.getElementById('chargeDate').value = new Date().toISOString().split('T')[0];
+            handlePlaceChange();
+            alert("Recharge ajoutée !");
+            switchTab('home', document.querySelectorAll('.nav-item')[0]);
+        }
+
+        // --- INTERACTION HISTORIQUE : MODIFIER / SUPPRIMER ---
+        function openEditModal(id) {
+            const charges = getCharges();
+            const target = charges.find(c => c.id === id);
+            if(!target) return;
+
+            document.getElementById('editId').value = target.id;
+            document.getElementById('editDate').value = target.date;
+            document.getElementById('editType').value = target.type;
+            document.getElementById('editKwh').value = target.kwh;
+            document.getElementById('editCost').value = target.cost;
+            document.getElementById('editModal').style.display = 'flex';
+        }
+
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        function submitEditCharge(e) {
+            e.preventDefault();
+            const id = document.getElementById('editId').value;
+            const charges = getCharges();
+            const index = charges.findIndex(c => c.id === id);
+            
+            if(index !== -1) {
+                charges[index].date = document.getElementById('editDate').value;
+                charges[index].type = document.getElementById('editType').value;
+                charges[index].kwh = parseFloat(document.getElementById('editKwh').value);
+                charges[index].cost = parseFloat(document.getElementById('editCost').value);
+                setCharges(charges);
+            }
+            closeModal('editModal');
+            updateDashboard();
+        }
+
+        function deleteCharge(id) {
+            if(confirm("Supprimer définitivement cette session ?")) {
+                let charges = getCharges();
+                charges = charges.filter(c => c.id !== id);
+                setCharges(charges);
+                updateDashboard();
+            }
+        }
+
+        // --- LOGIQUE OCR ET SCAN ---
+        async function processScreenshot() {
+            const fileInput = document.getElementById('screenshotInput');
+            if (!fileInput.files.length) return;
+            const statusDiv = document.getElementById('ocrStatus');
+            statusDiv.style.display = 'block';
+            statusDiv.textContent = "Lecture de l'image...";
+            document.getElementById('scannedResults').style.display = 'none';
+
+            try {
+                const worker = await Tesseract.createWorker('fra');
+                const ret = await worker.recognize(fileInput.files[0]);
+                await worker.terminate();
+                parseOcrText(ret.data.text);
+            } catch (e) {
+                statusDiv.textContent = "Erreur pendant le scan.";
+            }
+        }
+
+        function parseOcrText(text) {
+            const statusDiv = document.getElementById('ocrStatus');
+            const resultsDiv = document.getElementById('scannedResults');
+            const cardsContainer = document.getElementById('scannedCardsList');
+            cardsContainer.innerHTML = '';
+            tempScannedCharges = [];
+
+            const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+            let currentSessionDate = null;
+            let currentSessionTime = "";
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                const dateRegex = /(\d{2})[.\/](\d{2})[.\/](\d{4})/;
+                const matchDate = line.match(dateRegex);
+                if (matchDate) {
+                    currentSessionDate = `${matchDate[3]}-${matchDate[2]}-${matchDate[1]}`;
+                    const timeRegex = /(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})/;
+                    const matchTime = line.match(timeRegex);
+                    currentSessionTime = matchTime ? matchTime[1] : "";
+                    continue;
+                }
+
+                if (line.toLowerCase().includes('rechargé') || line.toLowerCase().includes('kwh')) {
+                    const kwhRegex = /(\d+([.,]\d+)?)\s*kwh/i;
+                    const matchKwh = line.match(kwhRegex);
+                    if (matchKwh && currentSessionDate) {
+                        let kwhValue = parseFloat(matchKwh[1].replace(',', '.'));
+                        if (kwhValue >= 0.05) {
+                            let detectedType = 'hp';
+                            if (currentSessionTime) {
+                                const hour = parseInt(currentSessionTime.split(':')[0]);
+                                if (hour >= 22 || hour < 6) detectedType = 'hc';
+                            }
+                            const configs = getConfigs();
+                            tempScannedCharges.push({
+                                id: `scan-${Date.now()}-${Math.random()}`,
+                                date: currentSessionDate, time: currentSessionTime, type: detectedType, kwh: kwhValue, cost: kwhValue * configs[detectedType]
+                            });
+                        }
+                        currentSessionDate = null; currentSessionTime = "";
+                    }
+                }
+            }
+
+            statusDiv.style.display = 'none';
+            if (!tempScannedCharges.length) {
+                alert("Aucune donnée lisible trouvée.");
+                return;
+            }
+            resultsDiv.style.display = 'block';
+            refreshScanCardsList();
+        }
+
+        function refreshScanCardsList() {
+            const cardsContainer = document.getElementById('scannedCardsList');
+            cardsContainer.innerHTML = '';
+            tempScannedCharges.forEach((c, idx) => {
+                const card = document.createElement('div');
+                card.className = 'scanned-card';
+                card.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:13px;">
+                        <b>📅 ${c.date} à ${c.time||'--'}</b> <b>${c.kwh} kWh</b>
+                    </div>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
+                        <select onchange="updateTempType(${idx}, this.value)" style="padding:4px; font-size:12px;">
+                            <option value="hc" ${c.type==='hc'?'selected':''}>Maison HC</option>
+                            <option value="hp" ${c.type==='hp'?'selected':''}>Maison HP</option>
+                            <option value="borne" ${c.type==='borne'?'selected':''}>Borne</option>
+                        </select>
+                        <input type="number" step="0.01" value="${c.cost.toFixed(2)}" oninput="updateTempCost(${idx}, this.value)" style="padding:4px; font-size:12px;">
+                    </div>
+                `;
+                cardsContainer.appendChild(card);
+            });
+        }
+
+        function updateTempType(idx, val) {
+            tempScannedCharges[idx].type = val;
+            tempScannedCharges[idx].cost = tempScannedCharges[idx].kwh * getConfigs()[val];
+            refreshScanCardsList();
+        }
+        function updateTempCost(idx, val) { tempScannedCharges[idx].cost = parseFloat(val) || 0; }
+
+        function saveAllScanned() {
+            const charges = getCharges();
+            tempScannedCharges.forEach(c => {
+                charges.push({ id: Date.now().toString()+Math.random().toString(36).substring(2,5), date: c.date, type: c.type, kwh: c.kwh, cost: c.cost });
+            });
+            setCharges(charges);
+            document.getElementById('scannedResults').style.display = 'none';
+            document.getElementById('screenshotInput').value = '';
+            alert("Sessions ajoutées !");
+            switchTab('home', document.querySelectorAll('.nav-item')[0]);
+        }
+
+        // --- RÉGLAGES TARIFS & ESSENCE ---
+        function loadSettingsForm() {
+            const c = getConfigs();
+            document.getElementById('rateHc').value = c.hc;
+            document.getElementById('rateHp').value = c.hp;
+            document.getElementById('rateBorne').value = c.borne;
+            document.getElementById('fuelCons').value = c.fuelCons || 4.7;
+            document.getElementById('fuelPrice').value = c.fuelPrice || 1.85;
+            document.getElementById('evCons').value = c.evCons || 16.0;
+        }
+
+        function saveSettings(e) {
+            e.preventDefault();
+            const configs = {
+                hc: parseFloat(document.getElementById('rateHc').value),
+                hp: parseFloat(document.getElementById('rateHp').value),
+                borne: parseFloat(document.getElementById('rateBorne').value),
+                fuelCons: parseFloat(document.getElementById('fuelCons').value),
+                fuelPrice: parseFloat(document.getElementById('fuelPrice').value),
+                evCons: parseFloat(document.getElementById('evCons').value)
+            };
+            localStorage.setItem('ev_rates_v4', JSON.stringify(configs));
+            alert("Paramètres sauvegardés !");
+            updateDashboard();
+        }
+
+        // --- ARCHIVAGE, TOTAUX ET TABLEAU DE BORD ---
+        function populateMonthSelector() {
+            const charges = getCharges();
+            const select = document.getElementById('filterMonth');
+            const monthsMap = {};
+            const now = new Date();
+            const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            monthsMap[currentMonthKey] = formatMonthLabel(currentMonthKey);
+
+            charges.forEach(c => {
+                const mKey = c.date.substring(0, 7);
+                monthsMap[mKey] = formatMonthLabel(mKey);
+            });
+
+            const savedValue = select.value || currentMonthKey;
+            select.innerHTML = '';
+            const sortedMonths = Object.keys(monthsMap).sort().reverse();
+            sortedMonths.forEach(key => {
+                const opt = document.createElement('option');
+                opt.value = key; opt.textContent = monthsMap[key];
+                select.appendChild(opt);
+            });
+            select.value = sortedMonths.includes(savedValue) ? savedValue : currentMonthKey;
+        }
+
+        function formatMonthLabel(ym) {
+            const [y, m] = ym.split('-');
+            return new Date(y, m - 1, 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }).replace(/^\w/, c => c.toUpperCase());
+        }
+
+        function updateDashboard() {
+            populateMonthSelector();
+            const selectedMonth = document.getElementById('filterMonth').value;
+            const charges = getCharges();
+            const configs = getConfigs();
+
+            // 1. Calculs mensuels filtrés
+            const filteredCharges = charges.filter(c => c.date.startsWith(selectedMonth));
+            let totalCost = 0, totalKwh = 0, costHc = 0, costHp = 0, costBorne = 0;
+
+            filteredCharges.forEach(c => {
+                totalCost += c.cost;
+                totalKwh += c.kwh;
+                if (c.type === 'hc') costHc += c.cost;
+                if (c.type === 'hp') costHp += c.cost;
+                if (c.type === 'borne') costBorne += c.cost;
+            });
+
+            // 2. Calculs Annuels Globaux (Archivage automatique par année en cours)
+            const currentYear = new Date().getFullYear().toString();
+            const annualCharges = charges.filter(c => c.date.startsWith(currentYear));
+            let annualCost = 0, annualKwh = 0;
+            annualCharges.forEach(c => { annualCost += c.cost; annualKwh += c.kwh; });
+
+            // 3. Calcul Économies Carburant (Rapport à l'ancienne voiture à essence)
+            // Km estimés = (kWh / conso_moyenne_ve) * 100
+            const evCons = configs.evCons || 16.0;
+            const fuelCons = configs.fuelCons || 4.7;
+            const fuelPrice = configs.fuelPrice || 1.85;
+
+            let monthlyKm = (totalKwh / evCons) * 100;
+            let equivalentFuelLitres = (monthlyKm / 100) * fuelCons;
+            let equivalentFuelCost = equivalentFuelLitres * fuelPrice;
+            let monthlySavings = equivalentFuelCost - totalCost;
+
+            let annualKm = (annualKwh / evCons) * 100;
+            let annFuelLitres = (annualKm / 100) * fuelCons;
+            let annFuelCost = annFuelLitres * fuelPrice;
+            let annualSavings = annFuelCost - annualCost;
+
+            // Remplissage interface Accueil
+            document.getElementById('currentMonthLabel').textContent = `Mois sélectionné : ${formatMonthLabel(selectedMonth)}`;
+            document.getElementById('totalCost').textContent = totalCost.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
+            document.getElementById('totalKwh').textContent = `${totalKwh.toLocaleString('fr-FR', { maximumFractionDigits: 1 })} kWh`;
+            document.getElementById('homeCost').textContent = (costHc + costHp).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
+            document.getElementById('stationCost').textContent = `Borne Publique : ${costBorne.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}`;
+            
+            document.getElementById('savingsValue').textContent = `${monthlySavings > 0 ? '+' : ''}${monthlySavings.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })} éco`;
+            document.getElementById('annualCostTotal').textContent = annualCost.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
+            
+            // Boite bilan annuel
+            document.getElementById('annCost').textContent = annualCost.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
+            document.getElementById('annSavings').textContent = `${annualSavings.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}`;
+
+            updateBar('Hc', costHc, totalCost);
+            updateBar('Hp', costHp, totalCost);
+            updateBar('Borne', costBorne, totalCost);
+
+            // Remplissage Liste historique
+            const listContainer = document.getElementById('chargeList');
+            listContainer.innerHTML = '';
+
+            if (!filteredCharges.length) {
+                listContainer.innerHTML = '<div class="empty-state">Aucune donnée pour ce mois.</div>';
+                return;
+            }
+
+            filteredCharges.sort((a,b) => new Date(b.date) - new Date(a.date));
+            filteredCharges.forEach(c => {
+                const item = document.createElement('div');
+                item.className = 'charge-item';
+                let label = '', bClass = '';
+                if(c.type==='hc'){ label='Maison HC'; bClass='badge-hc'; }
+                if(c.type==='hp'){ label='Maison HP'; bClass='badge-hp'; }
+                if(c.type==='borne'){ label='Borne'; bClass='badge-borne'; }
+
+                item.innerHTML = `
+                    <div class="charge-info">
+                        <p><span class="type-badge ${bClass}">${label}</span>${c.kwh.toFixed(1)} kWh</p>
+                        <span>Le ${new Date(c.date).toLocaleDateString('fr-FR', {day:'numeric', month:'short'})}</span>
+                    </div>
+                    <div class="charge-cost">
+                        <p>${c.cost.toLocaleString('fr-FR', {style:'currency', currency:'EUR'})}</p>
+                        <div class="action-btns">
+                            <button class="btn-action btn-edit" onclick="openEditModal('${c.id}')">Modifier</button>
+                            <button class="btn-action btn-delete" onclick="deleteCharge('${c.id}')">Supprimer</button>
+                        </div>
+                    </div>
+                `;
+                listContainer.appendChild(item);
+            });
+        }
+
+        function updateBar(t, v, total) {
+            const p = total > 0 ? (v / total) * 100 : 0;
+            document.getElementById(`bar${t}`).style.width = `${p}%`;
+            document.getElementById(`label${t}`).textContent = `${v.toLocaleString('fr-FR', {style:'currency', currency:'EUR'})} (${Math.round(p)}%)`;
+        }
+
+        loadSettingsForm();
+        populateMonthSelector();
+        updateDashboard();
+    </script>
+</body>
+</html>
