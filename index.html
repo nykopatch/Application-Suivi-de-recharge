@@ -626,4 +626,248 @@
             const id = document.getElementById('editId').value;
             const charges = getCharges(); const index = charges.findIndex(c => c.id === id);
             if(index !== -1) {
-                charges[index].date = document.getElementById('editDate').value
+                charges[index].date = document.getElementById('editDate').value;
+                charges[index].type = document.getElementById('editType').value;
+                charges[index].kwh = parseFloat(document.getElementById('editKwh').value);
+                charges[index].cost = parseFloat(document.getElementById('editCost').value);
+                setCharges(charges);
+            }
+            closeModal('editModal'); updateDashboard();
+        }
+        function deleteCharge(id) {
+            if(confirm("Supprimer cette session ?")) {
+                setCharges(getCharges().filter(c => c.id !== id));
+                updateDashboard();
+            }
+        }
+
+        function exportDataData() {
+            const dataStr = JSON.stringify({ charges: getCharges(), km: getKmRecords(), config: getConfigs() }, null, 2);
+            const blob = new Blob([dataStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = `ElecCharge_Sauvegarde_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        }
+
+        function importDataData(e) {
+            const file = e.target.files[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const parsed = JSON.parse(evt.target.result);
+                    if (parsed.charges) setCharges(parsed.charges);
+                    if (parsed.km) setKmRecords(parsed.km);
+                    if (parsed.config) localStorage.setItem('ev_rates_v7', JSON.stringify(parsed.config));
+                    alert("Restauration complète effectuée !");
+                    updateDashboard();
+                } catch(err) { alert("Fichier invalide."); }
+            };
+            reader.readAsText(file);
+        }
+
+        function loadSettingsForm() {
+            const c = getConfigs();
+            document.getElementById('rateHc').value = c.hc; document.getElementById('rateHp').value = c.hp; document.getElementById('rateBorne').value = c.borne;
+            document.getElementById('renaultLoss').value = c.renaultLoss || 9.3;
+            document.getElementById('sohValue').value = c.soh || 94.0;
+            document.getElementById('fuelCons').value = c.fuelCons; document.getElementById('fuelPrice').value = c.fuelPrice; document.getElementById('evCons').value = c.evCons;
+        }
+
+        function saveSettings(e) {
+            e.preventDefault();
+            localStorage.setItem('ev_rates_v7', JSON.stringify({
+                hc: parseFloat(document.getElementById('rateHc').value), hp: parseFloat(document.getElementById('rateHp').value), borne: parseFloat(document.getElementById('rateBorne').value),
+                renaultLoss: parseFloat(document.getElementById('renaultLoss').value), soh: parseFloat(document.getElementById('sohValue').value) || 94,
+                fuelCons: parseFloat(document.getElementById('fuelCons').value), fuelPrice: parseFloat(document.getElementById('fuelPrice').value), evCons: parseFloat(document.getElementById('evCons').value)
+            }));
+            alert("Configurations sauvegardées !"); updateDashboard();
+        }
+
+        function formatMonthLabel(ym) {
+            if(!ym || !ym.includes('-')) return "Inconnu";
+            const parts = ym.split('-');
+            return new Date(parts[0], parts[1] - 1, 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }).replace(/^\w/, c => c.toUpperCase());
+        }
+
+        function onHistoryDropdownChange() {
+            const selectEl = document.getElementById('filterMonth');
+            if(selectEl && selectEl.value) {
+                globalSelectedMonth = selectEl.value;
+                renderHistoryDetailedList();
+            }
+        }
+
+        function updateDashboard() {
+            if (!globalSelectedMonth || globalSelectedMonth === "undefined") {
+                globalSelectedMonth = getCurrentMonthKey();
+            }
+
+            renderMonthsSummaryList(); 
+            populateMonthFilterDropdown(); 
+
+            const charges = getCharges(); const configs = getConfigs(); const kmRecords = getKmRecords();
+            const filteredCharges = charges.filter(c => c.date && c.date.startsWith(globalSelectedMonth));
+            
+            let totalCost = 0, totalKwh = 0, costHc = 0, costHp = 0, costBorne = 0;
+            filteredCharges.forEach(c => {
+                totalCost += c.cost; totalKwh += c.kwh;
+                if (c.type === 'hc') costHc += c.cost;
+                if (c.type === 'hp') costHp += c.cost;
+                if (c.type === 'borne') costBorne += c.cost;
+            });
+
+            const realKm = kmRecords[globalSelectedMonth] || 0;
+            document.getElementById('kmInput').value = realKm > 0 ? realKm : '';
+            
+            let monthlySavings = 0, realConsText = "--";
+            const fuelCons = configs.fuelCons || 4.7; const fuelPrice = configs.fuelPrice || 1.85;
+
+            if (realKm > 0) {
+                const realAvgConsVal = (totalKwh / realKm) * 100;
+                realConsText = `${realAvgConsVal.toFixed(1)} kWh/100`;
+                let equivalentFuelCost = ((realKm / 100) * fuelCons) * fuelPrice;
+                monthlySavings = equivalentFuelCost - totalCost;
+                document.getElementById('kmRealLabel').innerHTML = `📉 Basé sur <b>${realKm} km réels</b> parcourus`;
+                document.getElementById('kmStatsFeedback').style.display = 'block';
+                document.getElementById('kmStatsFeedback').innerHTML = `Conso : ${realConsText} | Éco : <b>${monthlySavings.toFixed(2)} €</b>`;
+            } else {
+                const evCons = configs.evCons || 16.0;
+                let monthlyKmEst = (totalKwh / evCons) * 100;
+                let equivalentFuelCost = ((monthlyKmEst / 100) * fuelCons) * fuelPrice;
+                monthlySavings = equivalentFuelCost - totalCost;
+                document.getElementById('kmRealLabel').textContent = "⚠️ Entre ton km réel ci-dessous pour ajuster";
+                document.getElementById('kmStatsFeedback').style.display = 'none';
+            }
+
+            document.getElementById('homeMonthTitle').textContent = `Coût de ${formatMonthLabel(globalSelectedMonth)}`;
+            document.getElementById('totalCost').textContent = totalCost.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
+            document.getElementById('totalKwh').textContent = `${totalKwh.toLocaleString('fr-FR', { maximumFractionDigits: 1 })} kWh`;
+            document.getElementById('savingsValue').textContent = `${monthlySavings > 0 ? '+' : ''}${monthlySavings.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}`;
+            document.getElementById('realAvgCons').textContent = realConsText;
+
+            updateBar('Hc', costHc, totalCost); updateBar('Hp', costHp, totalCost); updateBar('Borne', costBorne, totalCost);
+            renderHistoryDetailedList();
+        }
+
+        function updateBar('Hc', costHc, totalCost); updateBar('Hp', costHp, totalCost); updateBar('Borne', costBorne, totalCost);
+        function updateBar(t, v, total) {
+            const p = total > 0 ? (v / total) * 100 : 0;
+            const el = document.getElementById(`bar${t}`);
+            if(el) {
+                el.style.width = `${p}%`;
+                document.getElementById(`label${t}`).textContent = `${v.toLocaleString('fr-FR', {style:'currency', currency:'EUR'})} (${Math.round(p)}%)`;
+            }
+        }
+
+        function renderMonthsSummaryList() {
+            const container = document.getElementById('monthsSummaryList'); if(!container) return;
+            container.innerHTML = '';
+            
+            const charges = getCharges(); const kmRecords = getKmRecords();
+            const monthsMap = {};
+
+            charges.forEach(c => {
+                if (c.date && c.date.includes('-')) {
+                    const p = c.date.split('-');
+                    const mKey = `${p[0]}-${p[1]}`;
+                    if (!monthsMap[mKey]) monthsMap[mKey] = { cost: 0, kwh: 0 };
+                    monthsMap[mKey].cost += c.cost;
+                    monthsMap[mKey].kwh += c.kwh;
+                }
+            });
+
+            const currentMonthKey = getCurrentMonthKey();
+            if (!monthsMap[currentMonthKey]) monthsMap[currentMonthKey] = { cost: 0, kwh: 0 };
+
+            const sortedMonths = Object.keys(monthsMap).sort().reverse();
+            sortedMonths.forEach(mKey => {
+                const data = monthsMap[mKey];
+                const km = kmRecords[mKey] || 0;
+                
+                let detailStr = `${data.kwh.toFixed(1)} kWh`;
+                if(km > 0) {
+                    const realAvg = (data.kwh / km) * 100;
+                    detailStr += ` • ${km} km • ${realAvg.toFixed(1)} kWh/100`;
+                } else {
+                    detailStr += ` • Pas de km enregistré`;
+                }
+
+                const card = document.createElement('div');
+                card.className = 'monthly-summary-card';
+                if(mKey === globalSelectedMonth) { card.style.borderColor = 'var(--primary)'; card.style.background = '#f0f9ff'; }
+                
+                card.onclick = function() { globalSelectedMonth = mKey; updateDashboard(); };
+                card.innerHTML = `
+                    <div class="monthly-summary-header">
+                        <span>📅 ${formatMonthLabel(mKey)}</span>
+                        <span style="color:var(--primary);">${data.cost.toFixed(2)} €</span>
+                    </div>
+                    <div class="monthly-summary-details">${detailStr}</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function populateMonthFilterDropdown() {
+            const charges = getCharges(); const select = document.getElementById('filterMonth'); if(!select) return;
+            const monthsSet = new Set();
+            monthsSet.add(getCurrentMonthKey());
+            
+            charges.forEach(c => { 
+                if(c.date && c.date.includes('-')) {
+                    const p = c.date.split('-');
+                    monthsSet.add(`${p[0]}-${p[1]}`);
+                }
+            });
+
+            const savedVal = globalSelectedMonth; select.innerHTML = '';
+            const sorted = Array.from(monthsSet).sort().reverse();
+            sorted.forEach(mKey => {
+                const opt = document.createElement('option'); opt.value = mKey; opt.textContent = formatMonthLabel(mKey);
+                select.appendChild(opt);
+            });
+            select.value = sorted.includes(savedVal) ? savedVal : sorted[0];
+        }
+
+        function renderHistoryDetailedList() {
+            const listContainer = document.getElementById('chargeList'); if(!listContainer) return;
+            listContainer.innerHTML = '';
+            
+            const filtered = getCharges().filter(c => c.date && c.date.startsWith(globalSelectedMonth));
+
+            if (!filtered.length) { listContainer.innerHTML = '<div class="empty-state">Aucune session individuelle ce mois.</div>'; return; }
+
+            filtered.sort((a, b) => b.date.localeCompare(a.date));
+            
+            filtered.forEach(c => {
+                const item = document.createElement('div'); item.className = 'charge-item';
+                let label = '', bClass = '';
+                if(c.type==='hc'){ label='Maison HC'; bClass='badge-hc'; }
+                if(c.type==='hp'){ label='Maison HP'; bClass='badge-hp'; }
+                if(c.type==='borne'){ label='Borne'; bClass='badge-borne'; }
+
+                const dateParts = c.date.split('-');
+                const formattedDate = dateParts.length === 3 ? `${dateParts[2]}/${dateParts[1]}` : c.date;
+
+                item.innerHTML = `
+                    <div class="charge-info">
+                        <p><span class="type-badge ${bClass}">${label}</span>${c.kwh.toFixed(1)} kWh</p>
+                        <span>Le ${formattedDate}</span>
+                    </div>
+                    <div class="charge-cost">
+                        <p>${c.cost.toLocaleString('fr-FR', {style:'currency', currency:'EUR'})}</p>
+                        <div class="action-btns">
+                            <button class="btn-action btn-edit" onclick="openEditModal('${c.id}')">Modifier</button>
+                            <button class="btn-action btn-delete" onclick="deleteCharge('${c.id}')">Supprimer</button>
+                        </div>
+                    </div>
+                `;
+                listContainer.appendChild(item);
+            });
+        }
+
+        loadSettingsForm();
+        updateDashboard();
+    </script>
+</body>
+</html>
